@@ -32,7 +32,10 @@
       }
 
       h1 {
-        font-size: 36px;
+        font-size: 0;
+        line-height: 0;
+        height: 0;
+        overflow: hidden;
       }
 
       h2 {
@@ -75,14 +78,27 @@
         columns: 2;
         max-width: 70ch;
       }
+
+      :root {
+        --focus-outline-color: currentColor;
+        --focus-outline-offset: 0.15rem;
+        --focus-outline-width: 2px;
+      }
+
+      *:focus-visible {
+        outline-color: var(--focus-outline-color);
+        outline-offset: var(--focus-outline-offset);
+        outline-style: solid;
+        outline-width: var(--focus-outline-width);
+      }
     </style>
     <script src="https://cdn.usefathom.com/script.js" data-site="BJCLKMYS" defer></script>
   </head>
   <body>
     <div>
       <header>
-        <svg width="90" height="18" viewBox="0 0 311 63" fill="none" xmlns="https://www.w3.org/2000/svg">
-          <title>wevm</title>
+        <h1>wevm</h1>
+        <svg width="90" height="18" viewBox="0 0 311 63" fill="none" xmlns="https://www.w3.org/2000/svg" aria-hidden="true">
           <path d="M17.24 61.12C16.52 53.28 15.68 45.8 14.72 38.68C13.84 31.48 12.96 24.48 12.08 17.68C11.84 16 11.48 14.96 11 14.56C10.52 14.08 9.91999 13.84 9.19999 13.84C7.67999 13.84 5.79999 15.24 3.55999 18.04L0.799988 14.8C4.07999 10.32 7.19999 6.92 10.16 4.6C13.12 2.28 16.08 1.12 19.04 1.12C22.16 1.12 24.48 2.04 26 3.88C27.52 5.72 28.48 8.56 28.88 12.4C29.44 17.2 29.92 22.24 30.32 27.52C30.72 32.8 31.08 38.08 31.4 43.36C34.68 37.04 37.92 30.6 41.12 24.04C44.4 17.48 47.6 10.76 50.72 3.88H61.16C61.56 6.52 61.96 9.68 62.36 13.36C62.76 16.96 63.16 20.8 63.56 24.88C64.04 28.88 64.48 32.8 64.88 36.64C65.28 40.48 65.68 43.96 66.08 47.08C68.8 43.4 71.32 39.76 73.64 36.16C75.96 32.56 78.24 28.76 80.48 24.76L79.04 20.56C78.48 18.96 77.92 17.32 77.36 15.64C76.8 13.96 76.52 12.36 76.52 10.84C76.52 7.4 77.52 4.88 79.52 3.27999C81.52 1.59999 83.92 0.759995 86.72 0.759995C87.84 0.759995 88.88 0.959996 89.84 1.36C90.8 1.68 91.56 2.03999 92.12 2.43999C92.76 3.4 93.2 4.4 93.44 5.43999C93.68 6.48 93.8 7.92 93.8 9.76C93.8 11.52 93.44 13.48 92.72 15.64C92.08 17.8 90.72 20.8 88.64 24.64C85.68 30 81.8 35.88 77 42.28C72.28 48.6 66.92 54.88 60.92 61.12L52.16 62.08L50.96 61.12C50.56 58.08 50.12 54.56 49.64 50.56C49.16 46.48 48.68 42.4 48.2 38.32C47.72 34.16 47.24 30.44 46.76 27.16C44.04 32.52 41.08 38.16 37.88 44.08C34.76 50 31.56 55.68 28.28 61.12L18.56 62.08L17.24 61.12Z" fill="currentColor"/>
           <path d="M125.84 7.71999C124.16 7.71999 122.36 8.43999 120.44 9.88C118.6 11.24 116.84 13.16 115.16 15.64C113.48 18.12 112.04 20.96 110.84 24.16C109.72 27.36 109.08 30.72 108.92 34.24C114.36 32.32 118.64 30.2 121.76 27.88C124.88 25.48 127.08 23.04 128.36 20.56C129.64 18.08 130.28 15.76 130.28 13.6C130.28 11.6 129.84 10.12 128.96 9.16C128.08 8.2 127.04 7.71999 125.84 7.71999ZM113 62.8C106.76 62.8 101.68 60.8 97.76 56.8C93.92 52.8 92 47.28 92 40.24C92 35.04 92.88 30.12 94.64 25.48C96.48 20.76 99 16.6 102.2 13C105.4 9.32 109.16 6.44 113.48 4.35999C117.8 2.2 122.48 1.12 127.52 1.12C132.96 1.12 137.08 2.32 139.88 4.72C142.76 7.12 144.2 10.24 144.2 14.08C144.2 19.12 141.32 23.84 135.56 28.24C129.88 32.56 121.08 36.2 109.16 39.16C109.56 43 110.8 45.84 112.88 47.68C114.96 49.52 117.64 50.44 120.92 50.44C124.44 50.44 127.56 49.56 130.28 47.8C133 46.04 135.28 44 137.12 41.68L140.48 44.08C138.88 47.12 136.72 50.08 134 52.96C131.36 55.84 128.28 58.2 124.76 60.04C121.24 61.88 117.32 62.8 113 62.8Z" fill="currentColor"/>
           <path d="M164.24 61.12C163.44 53.28 162.6 45.84 161.72 38.8C160.92 31.68 160.04 24.68 159.08 17.8C158.84 16.04 158.44 14.96 157.88 14.56C157.4 14.08 156.84 13.84 156.2 13.84C155.48 13.84 154.64 14.16 153.68 14.8C152.8 15.44 151.76 16.52 150.56 18.04L147.8 14.8C151.08 10.32 154.2 6.92 157.16 4.6C160.12 2.28 163.12 1.12 166.16 1.12C169.2 1.12 171.48 2.08 173 4C174.52 5.91999 175.52 8.84 176 12.76C176.64 18.36 177.2 24.16 177.68 30.16C178.16 36.08 178.6 42.04 179 48.04C184.84 40.44 190 32.56 194.48 24.4L193.28 20.44C192.72 18.84 192.16 17.24 191.6 15.64C191.12 13.96 190.88 12.36 190.88 10.84C190.88 7.4 191.8 4.88 193.64 3.27999C195.56 1.59999 197.96 0.759995 200.84 0.759995C201.96 0.759995 203 0.959996 203.96 1.36C205 1.68 205.8 2.03999 206.36 2.43999C207 3.4 207.44 4.4 207.68 5.43999C207.92 6.48 208.04 7.92 208.04 9.76C208.04 11.44 207.72 13.36 207.08 15.52C206.44 17.68 205.04 20.72 202.88 24.64C199.92 29.92 195.92 35.8 190.88 42.28C185.84 48.68 180.24 54.96 174.08 61.12L165.44 62.08L164.24 61.12Z" fill="currentColor"/>
@@ -95,53 +111,53 @@
       <hr />
       <div style="height: 24px"></div>
       <h2>
-        <i><strong>Core Projects</strong></i>
+        <span style="font-style: italic;"><strong>Core Projects</strong></span>
       </h2>
       <div style="height: 16px"></div>
       <ul>
         <li>
-          <a href="https://viem.sh" target="_blank" rel="noopener noreferrer"><i>Viem</i></a> TypeScript Interface for
+          <a href="https://viem.sh" target="_blank" rel="noopener noreferrer"><span style="font-style: italic;">Viem</span></a> TypeScript Interface for
           Ethereum.
         </li>
         <li>
-          <a href="https://wagmi.sh" target="_blank" rel="noopener noreferrer"><i>Wagmi</i></a> Reactivity for Ethereum apps.
+          <a href="https://wagmi.sh" target="_blank" rel="noopener noreferrer"><span style="font-style: italic;">Wagmi</span></a> Reactivity for Ethereum apps.
         </li>
         <li>
-          <a href="https://oxlib.sh" target="_blank" rel="noopener noreferrer"><i>Ox</i></a> Standard Library for Ethereum.
+          <a href="https://oxlib.sh" target="_blank" rel="noopener noreferrer"><span style="font-style: italic;">Ox</span></a> Standard Library for Ethereum.
         </li>
         <li>
-          <a href="https://abitype.dev" target="_blank" rel="noopener noreferrer"><i>ABIType</i></a> Strict TypeScript types
+          <a href="https://abitype.dev" target="_blank" rel="noopener noreferrer"><span style="font-style: italic;">ABIType</span></a> Strict TypeScript types
           for Ethereum ABIs.
         </li>
         <li>
-          <a href="https://vocs.dev" target="_blank" rel="noopener noreferrer"><i>Vocs</i></a> Minimal Documentation Framework, powered by React + Vite.
+          <a href="https://vocs.dev" target="_blank" rel="noopener noreferrer"><span style="font-style: italic;">Vocs</span></a> Minimal Documentation Framework, powered by React + Vite.
         </li>
         <li>
-          <a href="https://github.com/wevm/prool" target="_blank" rel="noopener noreferrer"><i>Prool</i></a> HTTP testing instances for Ethereum.
+          <a href="https://github.com/wevm/prool" target="_blank" rel="noopener noreferrer"><span style="font-style: italic;">Prool</span></a> HTTP testing instances for Ethereum.
         </li>
       </ul>
       <div style="height: 24px"></div>
       <hr />
       <div style="height: 24px"></div>
       <h2>
-        <i><strong>Collaborations</strong></i>
+        <span style="font-style: italic;"><strong>Collaborations</strong></span>
       </h2>
       <div style="height: 16px"></div>
       <ul>
         <li>
-          <a href="https://github.com/ithacaxyz/porto" target="_blank" rel="noopener noreferrer"><i>Porto</i></a
+          <a href="https://github.com/ithacaxyz/porto" target="_blank" rel="noopener noreferrer"><span style="font-style: italic;">Porto</span></a
           >, with <a href="https://ithaca.xyz" target="_blank" rel="noopener noreferrer">Ithaca</a>, Next-gen Account for Ethereum.
         </li>
         <li>
-          <a href="https://github.com/wevm/frog" target="_blank" rel="noopener noreferrer"><i>Frog</i></a
+          <a href="https://github.com/wevm/frog" target="_blank" rel="noopener noreferrer"><span style="font-style: italic;">Frog</span></a
           >, with <a href="https://paradigm.xyz" target="_blank" rel="noopener noreferrer">Paradigm</a>, Framework for Farcaster Frames 🐸
         </li>
         <li>
-          <a href="https://github.com/paradigmxyz/rivet" target="_blank" rel="noopener noreferrer"><i>Rivet</i></a
+          <a href="https://github.com/paradigmxyz/rivet" target="_blank" rel="noopener noreferrer"><span style="font-style: italic;">Rivet</span></a
           >, with <a href="https://paradigm.xyz" target="_blank" rel="noopener noreferrer">Paradigm</a>, Developer Wallet & DevTools for Anvil.
         </li>
         <li>
-          <a href="https://github.com/wevm/anvil.js" target="_blank" rel="noopener noreferrer"><i>Anvil.js</i></a>, with <a href="https://twitter.com/thefubhy" target="_blank" rel="noopener noreferrer">Sebastian Lorenz</a>,
+          <a href="https://github.com/wevm/anvil.js" target="_blank" rel="noopener noreferrer"><span style="font-style: italic;">Anvil.js</span></a>, with <a href="https://twitter.com/thefubhy" target="_blank" rel="noopener noreferrer">Sebastian Lorenz</a>,
           TypeScript wrapper for Foundry Anvil.
         </li>
       </ul>
@@ -149,7 +165,7 @@
       <hr />
       <div style="height: 24px"></div>
       <h2>
-        <i><strong>Team</strong></i>
+        <span style="font-style: italic;"><strong>Team</strong></span>
       </h2>
       <div style="height: 16px"></div>
       <ul>
@@ -164,7 +180,7 @@
       <hr />
       <div style="height: 24px"></div>
       <h2>
-        <i><strong>Elsewhere</strong></i>
+        <span style="font-style: italic;"><strong>Elsewhere</strong></span>
       </h2>
       <div style="height: 16px"></div>
       <ul class="contact">
@@ -192,7 +208,7 @@
 
       <div style="height: 24px"></div>
       <h2>
-        <i><strong>Sponsors</strong></i>
+        <span style="font-style: italic;"><strong>Sponsors</strong></span>
       </h2>
       <div style="height: 16px"></div>
       <p>
@@ -201,65 +217,65 @@
       <div style="height: 20px"></div>
       <ul class="sponsors">
         <li>
-          <a href="https://paradigm.xyz" target="_blank" rel="noopener noreferrer"><i>Paradigm</i></a> <small>(Collaborator)</small>
+          <a href="https://paradigm.xyz" target="_blank" rel="noopener noreferrer"><span style="font-style: italic;">Paradigm</span></a> <small>(Collaborator)</small>
         </li>
         <li>
-          <a href="https://tempo.xyz" target="_blank" rel="noopener noreferrer"><i>Tempo</i></a> <small>(Collaborator)</small>
+          <a href="https://tempo.xyz" target="_blank" rel="noopener noreferrer"><span style="font-style: italic;">Tempo</span></a> <small>(Collaborator)</small>
         </li>
         <li>
-          <a href="https://stripe.com" target="_blank" rel="noopener noreferrer"><i>Stripe</i></a>
+          <a href="https://stripe.com" target="_blank" rel="noopener noreferrer"><span style="font-style: italic;">Stripe</span></a>
         </li>
         <li>
           <a href="https://routescan.io" target="_blank" rel="noopener noreferrer">Routescan</a>
         </li>
         <li>
-          <a href="https://family.co" target="_blank" rel="noopener noreferrer"><i>Family</i></a>
+          <a href="https://family.co" target="_blank" rel="noopener noreferrer"><span style="font-style: italic;">Family</span></a>
         </li>
         <li>
-          <a href="https://context.app" target="_blank" rel="noopener noreferrer"><i>Context</i></a>
+          <a href="https://context.app" target="_blank" rel="noopener noreferrer"><span style="font-style: italic;">Context</span></a>
         </li>
         <li>
-          <a href="https://sushi.com" target="_blank" rel="noopener noreferrer"><i>Sushi</i></a>
+          <a href="https://sushi.com" target="_blank" rel="noopener noreferrer"><span style="font-style: italic;">Sushi</span></a>
         </li>
         <li>
-          <a href="https://dynamic.xyz" target="_blank" rel="noopener noreferrer"><i>Dynamic</i></a>
+          <a href="https://dynamic.xyz" target="_blank" rel="noopener noreferrer"><span style="font-style: italic;">Dynamic</span></a>
         </li>
         <li>
-          <a href="https://privy.io" target="_blank" rel="noopener noreferrer"><i>Privy</i></a>
+          <a href="https://privy.io" target="_blank" rel="noopener noreferrer"><span style="font-style: italic;">Privy</span></a>
         </li>
         <li>
-          <a href="https://pancakeswap.finance" target="_blank" rel="noopener noreferrer"><i>PancakeSwap</i></a>
+          <a href="https://pancakeswap.finance" target="_blank" rel="noopener noreferrer"><span style="font-style: italic;">PancakeSwap</span></a>
         </li>
         <li>
-          <a href="https://pimlico.io" target="_blank" rel="noopener noreferrer"><i>Pimlico</i></a>
+          <a href="https://pimlico.io" target="_blank" rel="noopener noreferrer"><span style="font-style: italic;">Pimlico</span></a>
         </li>
         <li>
-          <a href="https://zora.co" target="_blank" rel="noopener noreferrer"><i>Zora</i></a>
+          <a href="https://zora.co" target="_blank" rel="noopener noreferrer"><span style="font-style: italic;">Zora</span></a>
         </li>
         <li>
-          <a href="https://syndicate.io" target="_blank" rel="noopener noreferrer"><i>Syndicate</i></a>
+          <a href="https://syndicate.io" target="_blank" rel="noopener noreferrer"><span style="font-style: italic;">Syndicate</span></a>
         </li>
         <li>
-          <a href="https://relay.link" target="_blank" rel="noopener noreferrer"><i>Relay</i></a>
+          <a href="https://relay.link" target="_blank" rel="noopener noreferrer"><span style="font-style: italic;">Relay</span></a>
         </li>
         <li>
-          <a href="https://polymarket.com" target="_blank" rel="noopener noreferrer"><i>Polymarket</i></a>
+          <a href="https://polymarket.com" target="_blank" rel="noopener noreferrer"><span style="font-style: italic;">Polymarket</span></a>
         </li>
         <li>
-          <a href="https://web3auth.io" target="_blank" rel="noopener noreferrer"><i>Web3Auth</i></a>
+          <a href="https://web3auth.io" target="_blank" rel="noopener noreferrer"><span style="font-style: italic;">Web3Auth</span></a>
         </li>
         <li>
-          <a href="https://sequence.xyz" target="_blank" rel="noopener noreferrer"><i>Sequence</i></a>
+          <a href="https://sequence.xyz" target="_blank" rel="noopener noreferrer"><span style="font-style: italic;">Sequence</span></a>
         </li>
         <li>
-          <a href="https://gemini.com" target="_blank" rel="noopener noreferrer"><i>Gemini</i></a>
+          <a href="https://gemini.com" target="_blank" rel="noopener noreferrer"><span style="font-style: italic;">Gemini</span></a>
         </li>
       </ul>
       <div style="height: 24px"></div>
       <hr />
       <div style="height: 24px"></div>
       <footer>
-        <small><strong>weth, LLC</strong> <i>trading as</i> <strong>wevm</strong> © 2023–present</small>
+        <small><strong>weth, LLC</strong> <span style="font-style: italic;">trading as</span> <strong>wevm</strong> © 2023–present</small>
       </footer>
     </div>
   </body>
