@@ -6,5 +6,6 @@ dist
 .output
 .wrangler
 .vinxi
+tasks/
 worker-configuration.d.ts
 src/routeTree.gen.ts
