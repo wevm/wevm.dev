@@ -1,1 +1,10 @@
 node_modules
+.DS_Store
+.cache
+.env
+dist
+.output
+.wrangler
+.vinxi
+worker-configuration.d.ts
+src/routeTree.gen.ts

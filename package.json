@@ -1,13 +1,43 @@
 {
-  "name": "wevm",
+  "name": "wevm.dev",
   "private": true,
   "type": "module",
+  "sideEffects": false,
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
+    "dev": "vp dev",
+    "build": "vp build && tsc --noEmit",
+    "preview": "vp preview",
+    "deploy": "pnpm build && wrangler deploy",
+    "cf-typegen": "wrangler types",
+    "postinstall": "pnpm cf-typegen",
+    "check": "vp check --fix",
+    "lint": "vp lint",
+    "fmt": "vp fmt"
+  },
+  "dependencies": {
+    "@tanstack/react-router": "^1.169.1",
+    "@tanstack/react-router-devtools": "^1.166.13",
+    "@tanstack/react-start": "^1.167.59",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
   },
   "devDependencies": {
-    "vite": "^5.0.0"
+    "@cloudflare/vite-plugin": "^1.29.0",
+    "@tailwindcss/vite": "^4.2.2",
+    "@types/node": "^22.5.4",
+    "@types/react": "^19.0.8",
+    "@types/react-dom": "^19.0.3",
+    "@vitejs/plugin-react": "^6.0.1",
+    "@voidzero-dev/vite-plus-core": "^0.1.20",
+    "tailwindcss": "^4.2.2",
+    "typescript": "^5.6.0",
+    "vite": "^8.0.0",
+    "vite-plus": "^0.1.20",
+    "wrangler": "^4.74.0"
+  },
+  "pnpm": {
+    "overrides": {
+      "vite": "npm:@voidzero-dev/vite-plus-core@latest"
+    }
   }
 }
