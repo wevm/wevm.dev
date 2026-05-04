@@ -32,14 +32,70 @@ function Home() {
 /** Em-dash fallback rendered for every Topbar/project value not yet in KV. */
 const dash = '——'
 
+/**
+ * Add a fake activity tick to a Topbar value (npm downloads, GH stars) so
+ * the page feels live between syncs. Anchor (value + timestamp) is cached
+ * in `localStorage` under `storageKey` for an hour — refreshes within the
+ * window keep ticking from the cached point instead of snapping back to
+ * the SSR baseline. Once the cache expires (or a fresh SSR baseline
+ * overtakes it) the anchor resets.
+ *
+ * SSR-safe: returns `initial` on first render (server + client) and only
+ * starts ticking after `useEffect` runs on the client.
+ */
+const tickingCacheMs = 60 * 60 * 1000
+function useTicking(
+  initial: number | undefined,
+  options: { ratePerMinute: number; storageKey: string },
+): number | undefined {
+  const { ratePerMinute, storageKey } = options
+  const [anchor, setAnchor] = useState<{ value: number; time: number } | null>(null)
+  const [now, setNow] = useState(() => Date.now())
+
+  useEffect(() => {
+    if (initial === undefined) return
+    let cached: { value: number; time: number } | null = null
+    try {
+      const raw = localStorage.getItem(storageKey)
+      cached = raw ? JSON.parse(raw) : null
+    } catch {}
+    const fresh =
+      cached !== null &&
+      Date.now() - cached.time < tickingCacheMs &&
+      cached.value >= initial
+    const next = fresh ? (cached as { value: number; time: number }) : { value: initial, time: Date.now() }
+    if (!fresh) try { localStorage.setItem(storageKey, JSON.stringify(next)) } catch {}
+    setAnchor(next)
+    setNow(Date.now())
+    let raf = 0
+    const tick = () => {
+      setNow(Date.now())
+      raf = requestAnimationFrame(tick)
+    }
+    raf = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(raf)
+  }, [initial, storageKey])
+
+  if (!anchor) return initial
+  return anchor.value + Math.floor(((now - anchor.time) / 60_000) * ratePerMinute)
+}
+
 function Topbar() {
   const { stars, downloads } = Route.useLoaderData()
-  const total_stars = stars
+  const baseline_stars = stars
     ? Object.values(stars).reduce((sum, r) => sum + r.stargazerCount, 0)
     : undefined
-  const total_downloads = downloads
+  const total_stars = useTicking(baseline_stars, {
+    ratePerMinute: 30,
+    storageKey: 'starsAnchor',
+  })
+  const baseline_downloads = downloads
     ? Object.values(downloads).reduce((sum, n) => sum + n, 0)
     : undefined
+  const total_downloads = useTicking(baseline_downloads, {
+    ratePerMinute: 1000,
+    storageKey: 'downloadsAnchor',
+  })
   return (
     <header className="mb-8 flex items-center justify-between gap-4 border-b border-dashed border-soft pb-5 max-[640px]:flex-col max-[640px]:items-start">
       <div className="flex items-center gap-[14px]">
@@ -497,14 +553,16 @@ function Sponsors() {
 }
 
 function Footer() {
-  const year = new Date().getFullYear()
   return (
     <footer className="mt-12 flex flex-wrap justify-between gap-3 border-t border-primary pt-5 font-mono text-[11px] uppercase tracking-[0.04em] text-muted">
       <div>
         <strong className="font-normal text-primary">weth, LLC</strong> — trading as{' '}
         <strong className="font-normal text-primary">wevm</strong>
       </div>
-      <div>© 2023–{year}</div>
+      <div className="inline-flex items-center gap-1">
+        <span className="text-sm leading-none relative top-[4px]">©</span>
+        2023–present
+      </div>
     </footer>
   )
 }
