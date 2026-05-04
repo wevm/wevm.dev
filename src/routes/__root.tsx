@@ -1,7 +1,6 @@
 /// <reference types="vite/client" />
 
 import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router'
-import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
 import * as React from 'react'
 import css from '~/styles.css?url'
 
@@ -43,7 +42,6 @@ function Document({ children }: { children: React.ReactNode }) {
       </head>
       <body>
         {children}
-        <TanStackRouterDevtools position="bottom-right" />
         <Scripts />
         <script src="https://cdn.usefathom.com/script.js" data-site="BJCLKMYS" defer />
       </body>

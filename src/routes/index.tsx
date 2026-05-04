@@ -4,18 +4,6 @@ import * as Sources from '~/lib/sources'
 
 const config = Config.get()
 
-// Case-insensitive override lookup: GitHub Sponsor logins ship with
-// arbitrary casing (e.g. `Polymarket`, `SyndicateProtocol`) but config
-// authors shouldn't have to mirror that casing — match on lowercase.
-const logoOverrides = Object.fromEntries(
-  Object.entries(
-    (config.logoOverrides as Record<string, { scale?: number }>) ?? {},
-  ).map(([k, v]) => [k.toLowerCase(), v]),
-)
-function logoOverrideFor(slug: string): { scale?: number } | undefined {
-  return logoOverrides[slug.toLowerCase()]
-}
-
 export const Route = createFileRoute('/')({
   component: Home,
   loader: () => Sources.loadAll(),
@@ -121,17 +109,19 @@ function Hero() {
         </div>
         <p className="mt-[18px] max-w-[56ch] text-[clamp(16px,1.6vw,19px)] text-muted">
           <strong className="text-primary font-bold">Wevm</strong> is a collective building
-          open-source software used by hundreds of enterprise organizations and millions of
+          open-source TypeScript software used by hundreds of enterprise organizations and millions of
           developers worldwide.
         </p>
         <div className="mt-6 flex flex-wrap gap-[10px]">
-          <Btn href="https://github.com/wevm">
+          <Button href="https://github.com/wevm">
             GitHub <span className="font-mono">→</span>
-          </Btn>
-          <Btn href="https://github.com/sponsors/wevm">
+          </Button>
+          <Button href="https://github.com/sponsors/wevm">
             Sponsor <span className="font-mono">→</span>
-          </Btn>
-          <Btn href="mailto:dev@wevm.dev">dev@wevm.dev</Btn>
+          </Button>
+          <Button className="max-sm:hidden" href="mailto:dev@wevm.dev">
+            dev@wevm.dev
+          </Button>
         </div>
         <UsedBy />
       </div>
@@ -139,13 +129,21 @@ function Hero() {
   )
 }
 
-function Btn({ href, children }: { href: string; children: React.ReactNode }) {
+function Button({
+  children,
+  className = '',
+  href,
+}: {
+  children: React.ReactNode
+  className?: string
+  href: string
+}) {
   const external = !href.startsWith('mailto:')
   return (
     <a
-      className="inline-flex items-center gap-2 border border-primary bg-panel px-[14px] py-2 text-sm text-primary no-underline transition-colors duration-100 hover:bg-inverted hover:text-inverted"
+      className={`inline-flex items-center gap-2 border border-primary bg-panel px-[14px] py-2 text-sm text-primary no-underline transition-colors duration-100 hover:bg-inverted hover:text-inverted ${className}`}
       href={href}
-      {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+      {...(external ? { rel: 'noopener noreferrer', target: '_blank' } : {})}
     >
       {children}
     </a>
@@ -154,22 +152,6 @@ function Btn({ href, children }: { href: string; children: React.ReactNode }) {
 
 function UsedBy() {
   const { logoManifest } = Route.useLoaderData()
-  const Cell = ({ href, name, slug }: { href: string; name: string; slug: string }) => (
-    // `pr-10` replaces the parent `gap-x-10` so the hover hit-area
-    // extends into the inter-logo whitespace — cursoring between two
-    // logos still highlights the one on the left.
-    <li className="inline-flex shrink-0 items-center pr-10">
-      <a
-        href={href}
-        target="_blank"
-        rel="noopener noreferrer"
-        aria-label={name}
-        className="flex h-full w-full items-center no-underline opacity-75 transition-opacity duration-100 hover:opacity-100"
-      >
-        <Mark height={22} manifest={logoManifest} name={name} slug={slug} />
-      </a>
-    </li>
-  )
   return (
     <div className="mt-7 flex flex-col gap-7">
       <div className="text-lg font-medium tracking-[-0.01em] text-primary">
@@ -179,7 +161,7 @@ function UsedBy() {
         <div className="flex w-max animate-marquee group-hover:[animation-play-state:paused]">
           <ul className="m-0 flex shrink-0 list-none items-center text-primary">
             {config.usedBy.map((u) => (
-              <Cell key={u.slug} href={u.href} name={u.name} slug={u.slug} />
+              <UsedByCell key={u.slug} href={u.href} manifest={logoManifest} name={u.name} slug={u.slug} />
             ))}
           </ul>
           <ul
@@ -187,7 +169,13 @@ function UsedBy() {
             aria-hidden="true"
           >
             {config.usedBy.map((u) => (
-              <Cell key={`${u.slug}-dup`} href={u.href} name={u.name} slug={u.slug} />
+              <UsedByCell
+                key={`${u.slug}-dup`}
+                href={u.href}
+                manifest={logoManifest}
+                name={u.name}
+                slug={u.slug}
+              />
             ))}
           </ul>
         </div>
@@ -195,6 +183,44 @@ function UsedBy() {
     </div>
   )
 }
+
+function UsedByCell({
+  href,
+  manifest,
+  name,
+  slug,
+}: {
+  href: string
+  manifest: Record<string, number> | undefined
+  name: string
+  slug: string
+}) {
+  return (
+    // `pr-10` replaces the parent `gap-x-10` so the hover hit-area
+    // extends into the inter-logo whitespace — cursoring between two
+    // logos still highlights the one on the left.
+    <li className="inline-flex shrink-0 items-center pr-10">
+      <a
+        aria-label={name}
+        className="flex h-full w-full items-center no-underline opacity-75 transition-opacity duration-100 hover:opacity-100"
+        href={href}
+        rel="noopener noreferrer"
+        target="_blank"
+      >
+        <Mark height={22} manifest={manifest} name={name} slug={slug} />
+      </a>
+    </li>
+  )
+}
+
+// Case-insensitive override lookup: GitHub Sponsor logins ship with
+// arbitrary casing (e.g. `Polymarket`, `SyndicateProtocol`) but config
+// authors shouldn't have to mirror that casing — match on lowercase.
+const logoOverrides = Object.fromEntries(
+  Object.entries(
+    (config.logoOverrides as Record<string, { scale?: number }>) ?? {},
+  ).map(([k, v]) => [k.toLowerCase(), v]),
+)
 
 /**
  * Render a brand mark — an `<img src="/logo/:slug">` when the slug is
@@ -222,7 +248,8 @@ function Mark({
   // multiply both `<img>` dimensions so the layout box reflects the
   // visual size — important for the marquee, where transform-based
   // scaling would overflow into the overflow-hidden clip.
-  const scale = logoOverrideFor(slug)?.scale ?? 1
+  // lowercase to match the case-insensitive override map
+  const scale = logoOverrides[slug.toLowerCase()]?.scale ?? 1
   const renderedHeight = height * scale
   return (
     <img
@@ -283,8 +310,11 @@ function Projects() {
       <Items
         items={config.highlighted.projects.map((p) => {
           const repo = stars?.[p.github]
+          // Capitalize the repo name (after `/`) as the display name fallback —
+          // works for `viem` → `Viem`, `wagmi` → `Wagmi`, etc.
+          const slug = p.github.split('/')[1] ?? ''
           return {
-            name: p.name,
+            name: p.name ?? slug.charAt(0).toUpperCase() + slug.slice(1),
             href: p.href ?? repo?.homepageUrl ?? `https://github.com/${p.github}`,
             desc: p.desc ?? repo?.description ?? '',
           }

@@ -25,19 +25,18 @@ export type Config = {
     /**
      * Curated, ordered project list rendered by the homepage Projects
      * section. `github` is the canonical join key for stars + repo
-     * metadata; `npm` is the canonical join key for downloads.
+     * metadata. Display fields default to GitHub repo metadata; only
+     * set them explicitly to override the inferred value.
      */
     projects: ReadonlyArray<{
-      /** Manual override for `repository.description`. */
+      /** Override for `repository.description` (defaults to repo's GitHub description). */
       desc?: string
       /** `owner/repo` — canonical join key for stars/metadata. */
       github: string
-      /** Manual override for `repository.homepageUrl`. */
+      /** Override for `repository.homepageUrl` (defaults to repo's GitHub homepage, then GitHub URL). */
       href?: string
-      /** Display name. */
-      name: string
-      /** npm package name — canonical join key for downloads. */
-      npm?: string
+      /** Override for the display name (defaults to capitalized repo name, e.g. `viem` → `Viem`). */
+      name?: string
     }>
     /**
      * Curated priority sponsors. Rendered before the auto-discovered
