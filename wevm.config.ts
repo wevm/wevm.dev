@@ -6,16 +6,17 @@ export default Config.define({
     projects: [
       { github: 'wevm/viem' },
       { github: 'wevm/wagmi' },
-      { github: 'wevm/ox' },
+      { github: 'wevm/vocs' },
       {
         desc: 'URL to markdown for agents',
         github: 'wevm/curl.md',
         href: 'https://curl.md',
         name: 'curl.md',
+        new: true,
       },
       { github: 'wevm/incur' },
+      { github: 'wevm/mppx', name: 'mppx' },
       { github: 'wevm/abitype', name: 'ABIType' },
-      { github: 'wevm/vocs' },
     ],
     sponsors: [
       { github: 'paradigmxyz', type: 'collaborator' },

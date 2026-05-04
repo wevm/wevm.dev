@@ -43,6 +43,7 @@ export async function runStars(env: Cloudflare.Env): Promise<void> {
       stargazerCount: r.stargazerCount,
       description: r.description,
       homepageUrl: r.homepageUrl,
+      createdAt: r.createdAt,
     }
   await Promise.all([kv.put('stars', stars), kv.put('repos', repos)])
 }

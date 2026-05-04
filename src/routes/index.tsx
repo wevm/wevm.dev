@@ -1,6 +1,8 @@
 import { createFileRoute } from '@tanstack/react-router'
+import { useEffect, useState } from 'react'
 import * as Config from '~/lib/config'
 import * as Sources from '~/lib/sources'
+import type * as Github from '../../worker/sources/github'
 
 const config = Config.get()
 
@@ -280,6 +282,8 @@ type Item = {
   href: string
   desc: React.ReactNode
   meta?: React.ReactNode
+  /** Optional right-aligned trailing slot (e.g. star count on Projects). */
+  trailing?: React.ReactNode
 }
 
 function Items({ items }: { items: Array<Item> }) {
@@ -288,7 +292,11 @@ function Items({ items }: { items: Array<Item> }) {
       {items.map((it, i) => (
         <li
           key={i}
-          className="grid items-baseline gap-5 border-b border-dotted border-soft py-3.5 last:border-b-0 grid-cols-[minmax(220px,240px)_1fr] max-[640px]:grid-cols-1 max-[640px]:gap-1"
+          // Three columns always with the trailing slot pinned to a fixed
+          // width — Projects (with stars) and Team (with an empty slot) end
+          // up with the same name + desc column widths so rows line up
+          // vertically across sections.
+          className="grid items-baseline gap-5 border-b border-dotted border-soft py-3.5 last:border-b-0 grid-cols-[minmax(220px,240px)_minmax(0,1fr)_72px] max-[640px]:grid-cols-1 max-[640px]:gap-1"
         >
           <div className="text-lg font-medium tracking-[-0.01em]">
             <a href={it.href} target="_blank" rel="noopener noreferrer">
@@ -297,6 +305,9 @@ function Items({ items }: { items: Array<Item> }) {
             {it.meta && <span className="text-sm font-normal text-muted">{it.meta}</span>}
           </div>
           <div className="text-[15px] text-muted">{it.desc}</div>
+          <div className="font-mono text-xs text-muted text-right tabular-nums max-[640px]:text-left">
+            {it.trailing}
+          </div>
         </li>
       ))}
     </ul>
@@ -305,22 +316,90 @@ function Items({ items }: { items: Array<Item> }) {
 
 function Projects() {
   const { stars } = Route.useLoaderData()
+  const [expanded, setExpanded] = useState(false)
+
+  const curated: Array<Item> = config.highlighted.projects.map((p) => {
+    const repo = stars?.[p.github]
+    // Capitalize the repo name (after `/`) as the display name fallback —
+    // works for `viem` → `Viem`, `wagmi` → `Wagmi`, etc.
+    const slug = p.github.split('/')[1] ?? ''
+    return {
+      name: p.name ?? slug.charAt(0).toUpperCase() + slug.slice(1),
+      href: p.href ?? repo?.homepageUrl ?? `https://github.com/${p.github}`,
+      desc: p.desc ?? repo?.description ?? '—',
+      trailing: (() => {
+        if (p.new) return <Trailing forceNew />
+        if (repo) return <Trailing count={repo.stargazerCount} createdAt={repo.createdAt} />
+        return undefined
+      })(),
+    }
+  })
+
+  // N is computed from the SSR-loaded `stars` map — every wevm-org repo is a
+  // key, so `Object.keys(stars).length` is the upper bound. Subtracting curated
+  // entries that exist in `stars` gives the disclosure count without an extra
+  // KV read; the lazy `loadRepos` fetch only fires when the user expands.
+  const curatedInStars = stars
+    ? config.highlighted.projects.filter((p) => p.github in stars).length
+    : 0
+  const total = stars ? Object.keys(stars).length : 0
+  const remaining = Math.max(0, total - curatedInStars)
+
+  const [extras, setExtras] = useState<readonly Github.Repo[] | undefined>(undefined)
+  useEffect(() => {
+    if (!expanded || extras !== undefined) return
+    let cancelled = false
+    Sources.loadRepos().then((data) => {
+      if (!cancelled) setExtras(data)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [expanded, extras])
+
+  const extraItems: Array<Item> = (extras ?? []).map((r) => ({
+    name: r.name,
+    href: r.homepageUrl ?? `https://github.com/${r.nameWithOwner}`,
+    desc: r.description ?? '—',
+    trailing: <Trailing count={r.stargazerCount} createdAt={r.createdAt} />,
+  }))
+
   return (
     <Section title="Core Projects">
-      <Items
-        items={config.highlighted.projects.map((p) => {
-          const repo = stars?.[p.github]
-          // Capitalize the repo name (after `/`) as the display name fallback —
-          // works for `viem` → `Viem`, `wagmi` → `Wagmi`, etc.
-          const slug = p.github.split('/')[1] ?? ''
-          return {
-            name: p.name ?? slug.charAt(0).toUpperCase() + slug.slice(1),
-            href: p.href ?? repo?.homepageUrl ?? `https://github.com/${p.github}`,
-            desc: p.desc ?? repo?.description ?? '',
-          }
-        })}
-      />
+      <Items items={expanded ? [...curated, ...extraItems] : curated} />
+      {remaining > 0 && !expanded && (
+        <button
+          className="mt-4 inline-block text-sm text-muted no-underline hover:text-primary"
+          onClick={() => setExpanded(true)}
+          type="button"
+        >
+          View {remaining} more…
+        </button>
+      )}
     </Section>
+  )
+}
+
+/** Repos under 6 months old with <100 stars get a "New" badge instead of stars. */
+const sixMonthsMs = 1000 * 60 * 60 * 24 * 30 * 6
+function isNew(createdAt: string | undefined, stargazerCount: number): boolean {
+  if (!createdAt) return false
+  if (stargazerCount >= 100) return false
+  return Date.now() - new Date(createdAt).getTime() < sixMonthsMs
+}
+
+type TrailingProps =
+  | { forceNew: true; count?: never; createdAt?: never }
+  | { forceNew?: false; count: number; createdAt: string | undefined }
+
+function Trailing(props: TrailingProps) {
+  if (props.forceNew || isNew(props.createdAt, props.count))
+    return <span className="uppercase tracking-wider">New</span>
+  return (
+    <span className="inline-flex items-baseline gap-1">
+      <span className="text-sm leading-none relative -top-px">★</span>
+      {props.count.toLocaleString('en-US')}
+    </span>
   )
 }
 

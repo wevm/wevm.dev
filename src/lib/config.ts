@@ -37,6 +37,13 @@ export type Config = {
       href?: string
       /** Override for the display name (defaults to capitalized repo name, e.g. `viem` → `Viem`). */
       name?: string
+      /**
+       * Force the "New" badge in the trailing column. Use for private repos
+       * (which don't appear in `stars` so age can't be auto-detected) or to
+       * highlight a recently-launched public repo whose stars haven't crossed
+       * the threshold yet.
+       */
+      new?: boolean
     }>
     /**
      * Curated priority sponsors. Rendered before the auto-discovered

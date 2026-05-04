@@ -42,6 +42,8 @@ export type Repo = {
   homepageUrl?: string
   /** Star count. */
   stargazerCount: number
+  /** ISO timestamp the repo was created. Drives the "New" badge. */
+  createdAt: string
 }
 
 /**
@@ -50,7 +52,13 @@ export type Repo = {
  */
 export type Stars = Record<
   string,
-  { stargazerCount: number; description?: string; homepageUrl?: string }
+  {
+    stargazerCount: number
+    description?: string
+    homepageUrl?: string
+    /** ISO timestamp the repo was created. */
+    createdAt: string
+  }
 >
 
 /** A sponsor written to KV by {@link import('../sync.js').runSponsors}. */
@@ -117,6 +125,7 @@ export async function fetchRepos(github: Github, org: string): Promise<readonly 
           homepageUrl
           stargazerCount
           isArchived
+          createdAt
         }
       }
     }
@@ -132,6 +141,7 @@ export async function fetchRepos(github: Github, org: string): Promise<readonly 
           homepageUrl: string | null
           stargazerCount: number
           isArchived: boolean
+          createdAt: string
         }>
       }
     }
@@ -148,6 +158,7 @@ export async function fetchRepos(github: Github, org: string): Promise<readonly 
         description: node.description || undefined,
         homepageUrl: node.homepageUrl || undefined,
         stargazerCount: node.stargazerCount,
+        createdAt: node.createdAt,
       })
     }
     if (!data.organization.repositories.pageInfo.hasNextPage) break

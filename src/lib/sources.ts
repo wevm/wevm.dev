@@ -5,6 +5,9 @@ import * as Kv from '../../worker/lib/kv'
 import type * as Github from '../../worker/sources/github'
 import type * as Logos from '../../worker/sources/logos'
 import type * as Npm from '../../worker/sources/npm'
+import * as Config from './config'
+
+const config = Config.get()
 
 /** Bound Kv instance for the SSR loader. */
 const kv = Kv.from(env.KV)
@@ -40,3 +43,23 @@ export const loadAll = createServerFn({ method: 'GET' }).handler(async (): Promi
   ])
   return { stars, downloads, sponsors, logoManifest }
 })
+
+/**
+ * Lazy-loaded "extras" — every wevm-org repo that isn't already
+ * hand-curated in `config.highlighted.projects`. The KV `repos` array
+ * is pre-filtered (no archived/forks/private) and pre-sorted by stars
+ * desc by `Sync.runStars`; this just trims out the curated entries
+ * (joined by `nameWithOwner` ↔ `github`) so the homepage can append
+ * them under the curated list when the user expands "View N more…".
+ *
+ * Returns `[]` on KV miss (cold deploy) — UI hides the disclosure in
+ * that case rather than surfacing a broken/empty expansion.
+ */
+export const loadRepos = createServerFn({ method: 'GET' }).handler(
+  async (): Promise<readonly Github.Repo[]> => {
+    const repos = await kv.get('repos')
+    if (!repos) return []
+    const curated = new Set(config.highlighted.projects.map((p) => p.github))
+    return repos.filter((r) => !curated.has(r.nameWithOwner))
+  },
+)
