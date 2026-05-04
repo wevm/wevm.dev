@@ -79,10 +79,16 @@
 
   --text-color-inverted: light-dark(#f5f5f3, #0c0c0c);
 
-  --border-color-primary: light-dark(#c8c8c2, #2a2a2a);
-  --border-color-soft: light-dark(#e4e4df, #1f1f1f);
-  
-  --animate-marquee: marquee 40s linear infinite;
+  --border-color-primary: light-dark(#dcdcd6, #2a2a2a);
+  --border-color-soft: light-dark(#ededea, #1f1f1f);
+
+  /*
+   * Marquee duration scales with `wevm.config.ts.usedBy.length` — target ~30 px/sec
+   * for a calm, brand-trust pace (faster reads as a stock-ticker, slower drags).
+   * Formula: (entry_count × avg_entry_px ≈ 120) / 30 ≈ duration_seconds.
+   * Tune when the entry count changes by more than a couple.
+   */
+  --animate-marquee: marquee 60s linear infinite;
 
   --color-primary: light-dark(#111111, #f2f2ef);
   --color-muted: light-dark(#6b6b6b, #8a8a86);
@@ -92,42 +98,52 @@
 
 @layer base {
   html {
-    color-scheme: light dark;
-    background: var(--background-color-primary);
-    color: var(--color-primary);
+    @apply scheme-light-dark bg-primary text-primary;
   }
 
   body {
-    font-family: var(--font-sans);
-    font-weight: 400;
-    line-height: 1.45;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    text-rendering: optimizeLegibility;
-    font-feature-settings: 'ss01', 'ss02', 'kern';
+    @apply font-sans font-normal antialiased leading-[1.45]
+      [text-rendering:optimizeLegibility]
+      font-features-['ss01','ss02','kern'];
   }
 
   *:focus-visible {
-    outline-color: var(--color-accent);
-    outline-offset: 0.15rem;
-    outline-style: solid;
-    outline-width: 2px;
+    @apply outline-solid outline-2 outline-accent outline-offset-[0.15rem];
   }
 
   a {
-    color: var(--color-primary);
-    text-decoration: none;
+    @apply text-primary no-underline;
   }
 
   a:hover {
-    text-decoration: underline;
-    text-decoration-thickness: 1px;
-    text-underline-offset: 3px;
+    @apply underline decoration-1 underline-offset-[3px];
   }
 }
 
 @keyframes marquee {
   to {
     transform: translateX(-50%);
+  }
+}
+
+/*
+ * Brand-mark colors. Bytes ship pure white so we can recolor entirely
+ * in CSS — `<img>`-rendered SVGs don't inherit parent paint, so we
+ * lean on `filter` instead of `currentColor`. `brightness(< 1)` darkens
+ * white toward gray; on hover we collapse to pure black (light) or
+ * leave it pure white (dark).
+ */
+[data-mark] {
+  filter: brightness(0.42); /* ~#6b6b6b — matches `--color-muted` light */
+}
+a:hover [data-mark] {
+  filter: brightness(0);
+}
+@media (prefers-color-scheme: dark) {
+  [data-mark] {
+    filter: brightness(0.54); /* ~#8a8a86 — matches `--color-muted` dark */
+  }
+  a:hover [data-mark] {
+    filter: none;
   }
 }

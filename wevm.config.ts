@@ -1,0 +1,82 @@
+import * as Config from './src/lib/config'
+
+export default Config.define({
+  excludedSponsors: ['contextwtf'],
+  highlighted: {
+    projects: [
+      {
+        desc: 'TypeScript Interface for Ethereum.',
+        github: 'wevm/viem',
+        href: 'https://viem.sh',
+        name: 'Viem',
+        npm: 'viem',
+      },
+      {
+        desc: 'Reactivity for Ethereum apps.',
+        github: 'wevm/wagmi',
+        href: 'https://wagmi.sh',
+        name: 'Wagmi',
+        npm: 'wagmi',
+      },
+      {
+        desc: 'Standard Library for Ethereum.',
+        github: 'wevm/ox',
+        href: 'https://oxlib.sh',
+        name: 'Ox',
+        npm: 'ox',
+      },
+      {
+        desc: 'Strict TypeScript types for Ethereum ABIs.',
+        github: 'wevm/abitype',
+        href: 'https://abitype.dev',
+        name: 'ABIType',
+        npm: 'abitype',
+      },
+      {
+        desc: 'Minimal Documentation Framework, powered by React + Vite.',
+        github: 'wevm/vocs',
+        href: 'https://vocs.dev',
+        name: 'Vocs',
+        npm: 'vocs',
+      },
+      {
+        desc: 'HTTP testing instances for Ethereum.',
+        github: 'wevm/prool',
+        href: 'https://github.com/wevm/prool',
+        name: 'Prool',
+        npm: 'prool',
+      },
+    ],
+    sponsors: [
+      { github: 'paradigmxyz', type: 'collaborator' },
+      { github: 'tempoxyz', type: 'collaborator' },
+      { github: 'stripe', type: 'large' },
+      { alias: 'family', github: 'aave', type: 'large' },
+      { alias: 'tbtstl', github: 'ourzora', type: 'small' },
+      { alias: 'lamaalrajih', github: 'rainbow-me', type: 'small' },
+    ],
+  },
+  logoOverrides: {
+    paradigmxyz: { scale: 1.3 },
+    polymarket: { scale: 1.5 },
+    'rainbow-me': { scale: 1.2 },
+    stripe: { scale: 1.3 },
+    tempoxyz: { scale: 0.7 },
+  },
+  team: [
+    { github: 'tmm', handle: 'tmm', twitter: 'awkweb' },
+    { github: 'jxom', handle: 'jxom', twitter: '_jxom' },
+  ],
+  usedBy: [
+    { href: 'https://paradigm.xyz', name: 'Paradigm', slug: 'paradigmxyz' },
+    { href: 'https://tempo.xyz', name: 'Tempo', slug: 'tempoxyz' },
+    { href: 'https://coinbase.com', name: 'Coinbase', slug: 'coinbase' },
+    { href: 'https://stripe.com', name: 'Stripe', slug: 'stripe' },
+    { href: 'https://brave.com', name: 'Brave', slug: 'brave' },
+    { href: 'https://cloudflare.com', name: 'Cloudflare', slug: 'cloudflare' },
+    { href: 'https://shopify.com', name: 'Shopify', slug: 'shopify' },
+    { href: 'https://vercel.com', name: 'Vercel', slug: 'vercel' },
+    { href: 'https://metamask.io', name: 'MetaMask', slug: 'metamask' },
+    { href: 'https://polymarket.com', name: 'Polymarket', slug: 'polymarket' },
+  ],
+})

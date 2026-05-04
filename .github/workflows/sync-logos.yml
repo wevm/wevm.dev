@@ -1,0 +1,43 @@
+name: sync-logos
+
+# Re-runs the offline logo pipeline whenever its git-tracked inputs
+# change, then commits the normalized output (`public/logo/`) back to
+# the repo so Cloudflare's static asset pipeline picks it up on the
+# next deploy.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'public/logos/**'
+      - 'scripts/gen:logos.ts'
+      - 'scripts/lib/logos.ts'
+      - 'scripts/lib/svg.ts'
+      - 'wevm.config.ts'
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm gen:logos
+      - name: Commit regenerated logos
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git add public/logo
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m 'chore: regenerate logos'
+            git push
+          fi

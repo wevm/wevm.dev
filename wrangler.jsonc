@@ -3,8 +3,13 @@
   "name": "wevm-dev",
   "compatibility_date": "2025-09-24",
   "compatibility_flags": ["nodejs_compat"],
-  "main": "@tanstack/react-start/server-entry",
+  "main": "./worker/index.ts",
   "observability": {
     "enabled": true,
   },
+  "kv_namespaces": [
+    // Created via `wrangler kv namespace create KV`.
+    // Replace `id` with the value wrangler prints after creation.
+    { "binding": "KV", "id": "REPLACE_WITH_KV_NAMESPACE_ID" },
+  ],
 }

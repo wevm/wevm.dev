@@ -1,16 +1,12 @@
 /// <reference types="vite/client" />
 
-import {
-  HeadContent,
-  Scripts,
-  createRootRoute,
-} from '@tanstack/react-router'
+import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router'
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
 import * as React from 'react'
-import appCss from '~/styles.css?url'
+import css from '~/styles.css?url'
 
-const title = 'Wevm — TypeScript tooling for the frontier'
-const description = 'TypeScript tooling for the frontier.'
+const title = 'Wevm — TypeScript tools for the frontier'
+const description = 'TypeScript tools for the frontier.'
 
 export const Route = createRootRoute({
   head: () => ({
@@ -26,7 +22,7 @@ export const Route = createRootRoute({
       { name: 'og:description', content: description },
     ],
     links: [
-      { rel: 'stylesheet', href: appCss },
+      { rel: 'stylesheet', href: css },
       { rel: 'icon', type: 'image/svg+xml', href: '/icon-light.svg' },
       {
         rel: 'icon',
@@ -36,10 +32,10 @@ export const Route = createRootRoute({
       },
     ],
   }),
-  shellComponent: RootDocument,
+  shellComponent: Document,
 })
 
-function RootDocument({ children }: { children: React.ReactNode }) {
+function Document({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <head>
@@ -49,11 +45,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         {children}
         <TanStackRouterDevtools position="bottom-right" />
         <Scripts />
-        <script
-          src="https://cdn.usefathom.com/script.js"
-          data-site="BJCLKMYS"
-          defer
-        />
+        <script src="https://cdn.usefathom.com/script.js" data-site="BJCLKMYS" defer />
       </body>
     </html>
   )

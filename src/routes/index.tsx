@@ -1,7 +1,24 @@
 import { createFileRoute } from '@tanstack/react-router'
+import * as Config from '~/lib/config'
+import * as Sources from '~/lib/sources'
+
+const config = Config.get()
+
+// Case-insensitive override lookup: GitHub Sponsor logins ship with
+// arbitrary casing (e.g. `Polymarket`, `SyndicateProtocol`) but config
+// authors shouldn't have to mirror that casing — match on lowercase.
+const logoOverrides = Object.fromEntries(
+  Object.entries(
+    (config.logoOverrides as Record<string, { scale?: number }>) ?? {},
+  ).map(([k, v]) => [k.toLowerCase(), v]),
+)
+function logoOverrideFor(slug: string): { scale?: number } | undefined {
+  return logoOverrides[slug.toLowerCase()]
+}
 
 export const Route = createFileRoute('/')({
   component: Home,
+  loader: () => Sources.loadAll(),
 })
 
 function Home() {
@@ -12,8 +29,8 @@ function Home() {
           <Topbar />
           <Hero />
           <Projects />
-          <Collaborations />
           <Team />
+          <Collaborators />
           <Sponsors />
           <Footer />
         </div>
@@ -22,10 +39,17 @@ function Home() {
   )
 }
 
+/** Em-dash fallback rendered for every Topbar/project value not yet in KV. */
+const dash = '——'
+
 function Topbar() {
-  // TODO: replace with live data
-  const downloads = '——'
-  const stars = '——'
+  const { stars, downloads } = Route.useLoaderData()
+  const total_stars = stars
+    ? Object.values(stars).reduce((sum, r) => sum + r.stargazerCount, 0)
+    : undefined
+  const total_downloads = downloads
+    ? Object.values(downloads).reduce((sum, n) => sum + n, 0)
+    : undefined
   return (
     <header className="mb-8 flex items-center justify-between gap-4 border-b border-dashed border-soft pb-5 max-[640px]:flex-col max-[640px]:items-start">
       <div className="flex items-center gap-[14px]">
@@ -58,8 +82,16 @@ function Topbar() {
         </svg>
       </div>
       <div className="flex flex-wrap gap-2 font-mono">
-        <Badge label="NPM DOWNLOADS" value={downloads} unit="/MO" />
-        <Badge label="GH STARS" value={stars} unit="★" />
+        <Badge
+          label="NPM DOWNLOADS"
+          value={total_downloads !== undefined ? total_downloads.toLocaleString('en-US') : dash}
+          unit="/MO"
+        />
+        <Badge
+          label="GH STARS"
+          value={total_stars !== undefined ? total_stars.toLocaleString('en-US') : dash}
+          unit="★"
+        />
       </div>
     </header>
   )
@@ -82,16 +114,14 @@ function Hero() {
     <section className="mb-10 grid grid-cols-1 gap-6">
       <div>
         <div className="text-[clamp(32px,6vw,64px)] font-bold leading-none tracking-[-0.03em]">
-          TypeScript tooling
+          TypeScript tools
           <br />
           for the{' '}
-          <i className="font-serif font-normal italic tracking-[-0.015em] px-[0.04em]">
-            frontier
-          </i>
+          <i className="font-serif font-normal italic tracking-[-0.015em] px-[0.04em]">frontier</i>
         </div>
         <p className="mt-[18px] max-w-[56ch] text-[clamp(16px,1.6vw,19px)] text-muted">
-          <strong className="text-primary font-bold">Wevm</strong> is a collective
-          building open-source software used by hundreds of enterprise organizations and millions of
+          <strong className="text-primary font-bold">Wevm</strong> is a collective building
+          open-source software used by hundreds of enterprise organizations and millions of
           developers worldwide.
         </p>
         <div className="mt-6 flex flex-wrap gap-[10px]">
@@ -123,134 +153,87 @@ function Btn({ href, children }: { href: string; children: React.ReactNode }) {
 }
 
 function UsedBy() {
-  const logos: Array<{ label: string; viewBox: string; svg: React.ReactNode }> =
-    [
-      {
-        label: 'Acme',
-        viewBox: '0 0 110 32',
-        svg: (
-          <>
-            <circle cx="12" cy="16" r="9" fill="currentColor" />
-            <text
-              x="30"
-              y="24"
-              fontFamily="Helvetica Now Display, Helvetica, Arial, sans-serif"
-              fontSize="22"
-              fontWeight="700"
-              letterSpacing="-0.02em"
-              fill="currentColor"
-            >
-              Acme
-            </text>
-          </>
-        ),
-      },
-      {
-        label: 'Globex',
-        viewBox: '0 0 130 32',
-        svg: (
-          <>
-            <rect
-              x="2"
-              y="6"
-              width="20"
-              height="20"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-            />
-            <text
-              x="30"
-              y="24"
-              fontFamily="Helvetica Now Display, Helvetica, Arial, sans-serif"
-              fontSize="22"
-              fontWeight="500"
-              letterSpacing="0.02em"
-              fill="currentColor"
-            >
-              Globex
-            </text>
-          </>
-        ),
-      },
-      {
-        label: 'Initech',
-        viewBox: '0 0 130 32',
-        svg: (
-          <>
-            <path d="M2 26 L14 4 L26 26 Z" fill="currentColor" />
-            <text
-              x="30"
-              y="24"
-              fontFamily="Helvetica Now Display, Helvetica, Arial, sans-serif"
-              fontSize="22"
-              fontWeight="700"
-              letterSpacing="-0.01em"
-              fill="currentColor"
-            >
-              Initech
-            </text>
-          </>
-        ),
-      },
-      {
-        label: 'Hooli',
-        viewBox: '0 0 90 32',
-        svg: (
-          <text
-            x="0"
-            y="24"
-            fontFamily="Helvetica Now Display, Helvetica, Arial, sans-serif"
-            fontSize="22"
-            fontWeight="900"
-            letterSpacing="-0.04em"
-            fill="currentColor"
-          >
-            hooli
-          </text>
-        ),
-      },
-    ]
-
-  const Logo = ({
-    label,
-    viewBox,
-    svg,
-  }: { label: string; viewBox: string; svg: React.ReactNode }) => (
-    <li className="inline-flex shrink-0 items-center opacity-75 transition-opacity duration-100 hover:opacity-100">
-      <svg
-        className="block h-[22px] w-auto text-primary"
-        viewBox={viewBox}
-        aria-label={label}
+  const { logoManifest } = Route.useLoaderData()
+  const Cell = ({ href, name, slug }: { href: string; name: string; slug: string }) => (
+    // `pr-10` replaces the parent `gap-x-10` so the hover hit-area
+    // extends into the inter-logo whitespace — cursoring between two
+    // logos still highlights the one on the left.
+    <li className="inline-flex shrink-0 items-center pr-10">
+      <a
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label={name}
+        className="flex h-full w-full items-center no-underline opacity-75 transition-opacity duration-100 hover:opacity-100"
       >
-        {svg}
-      </svg>
+        <Mark height={22} manifest={logoManifest} name={name} slug={slug} />
+      </a>
     </li>
   )
-
   return (
     <div className="mt-7 flex flex-col gap-7">
       <div className="text-lg font-medium tracking-[-0.01em] text-primary">
         Trusted in production by
       </div>
-      <div className="overflow-hidden">
-        <div className="flex w-max animate-marquee">
-          <ul className="m-0 flex shrink-0 list-none items-center gap-x-10 pr-10 text-primary">
-            {logos.map((l) => (
-              <Logo key={l.label} {...l} />
+      <div className="group overflow-hidden">
+        <div className="flex w-max animate-marquee group-hover:[animation-play-state:paused]">
+          <ul className="m-0 flex shrink-0 list-none items-center text-primary">
+            {config.usedBy.map((u) => (
+              <Cell key={u.slug} href={u.href} name={u.name} slug={u.slug} />
             ))}
           </ul>
           <ul
-            className="m-0 flex shrink-0 list-none items-center gap-x-10 pr-10 text-primary"
+            className="m-0 flex shrink-0 list-none items-center text-primary"
             aria-hidden="true"
           >
-            {logos.map((l) => (
-              <Logo key={`${l.label}-dup`} {...l} />
+            {config.usedBy.map((u) => (
+              <Cell key={`${u.slug}-dup`} href={u.href} name={u.name} slug={u.slug} />
             ))}
           </ul>
         </div>
       </div>
     </div>
+  )
+}
+
+/**
+ * Render a brand mark — an `<img src="/logo/:slug">` when the slug is
+ * in the manifest, else a `<span>` plain-text fallback. No client-side
+ * image fallback so SSR HTML is final and there's no broken-image
+ * flicker. Width is computed from the manifest aspect ratio so the
+ * intrinsic image dimensions match the rendered box (no CLS).
+ */
+function Mark({
+  height,
+  manifest,
+  name,
+  slug,
+}: {
+  height: number
+  manifest: Record<string, number> | undefined
+  name: string
+  slug: string
+}) {
+  const ratio = manifest?.[slug]
+  if (ratio === undefined)
+    return <span className="text-lg font-medium tracking-[-0.01em] text-primary">{name}</span>
+  // Per-slug visual scale lives in config (not the SVG bytes) so we
+  // don't have to reason about server-side viewBox clipping. We
+  // multiply both `<img>` dimensions so the layout box reflects the
+  // visual size — important for the marquee, where transform-based
+  // scaling would overflow into the overflow-hidden clip.
+  const scale = logoOverrideFor(slug)?.scale ?? 1
+  const renderedHeight = height * scale
+  return (
+    <img
+      alt={name}
+      className="block w-auto transition-[filter] duration-100"
+      data-mark
+      height={renderedHeight}
+      src={`/logos/mono/${slug}.svg`}
+      style={{ height: `${renderedHeight}px` }}
+      width={Math.round(renderedHeight * ratio)}
+    />
   )
 }
 
@@ -272,7 +255,7 @@ type Item = {
   meta?: React.ReactNode
 }
 
-function Items({ items, collab }: { items: Array<Item>; collab?: boolean }) {
+function Items({ items }: { items: Array<Item> }) {
   return (
     <ul className="m-0 grid list-none grid-cols-1 gap-0 p-0">
       {items.map((it, i) => (
@@ -280,19 +263,11 @@ function Items({ items, collab }: { items: Array<Item>; collab?: boolean }) {
           key={i}
           className="grid items-baseline gap-5 border-b border-dotted border-soft py-3.5 last:border-b-0 grid-cols-[minmax(220px,240px)_1fr] max-[640px]:grid-cols-1 max-[640px]:gap-1"
         >
-          <div
-            className={
-              collab
-                ? 'grid grid-cols-[80px_1fr] items-baseline gap-2.5 text-lg font-medium tracking-[-0.01em]'
-                : 'text-lg font-medium tracking-[-0.01em]'
-            }
-          >
+          <div className="text-lg font-medium tracking-[-0.01em]">
             <a href={it.href} target="_blank" rel="noopener noreferrer">
               {it.name}
             </a>
-            {it.meta && (
-              <span className="text-sm font-normal text-muted">{it.meta}</span>
-            )}
+            {it.meta && <span className="text-sm font-normal text-muted">{it.meta}</span>}
           </div>
           <div className="text-[15px] text-muted">{it.desc}</div>
         </li>
@@ -302,468 +277,108 @@ function Items({ items, collab }: { items: Array<Item>; collab?: boolean }) {
 }
 
 function Projects() {
-  const items: Array<Item> = [
-    {
-      name: 'Viem',
-      href: 'https://viem.sh',
-      desc: 'TypeScript Interface for Ethereum.',
-    },
-    {
-      name: 'Wagmi',
-      href: 'https://wagmi.sh',
-      desc: 'Reactivity for Ethereum apps.',
-    },
-    {
-      name: 'Ox',
-      href: 'https://oxlib.sh',
-      desc: 'Standard Library for Ethereum.',
-    },
-    {
-      name: 'ABIType',
-      href: 'https://abitype.dev',
-      desc: 'Strict TypeScript types for Ethereum ABIs.',
-    },
-    {
-      name: 'Vocs',
-      href: 'https://vocs.dev',
-      desc: 'Minimal Documentation Framework, powered by React + Vite.',
-    },
-    {
-      name: 'Prool',
-      href: 'https://github.com/wevm/prool',
-      desc: 'HTTP testing instances for Ethereum.',
-    },
-  ]
+  const { stars } = Route.useLoaderData()
   return (
     <Section title="Core Projects">
-      <Items items={items} />
-    </Section>
-  )
-}
-
-function Collaborations() {
-  const collab = (label: string, href: string) => (
-    <>
-      with{' '}
-      <a href={href} target="_blank" rel="noopener noreferrer">
-        {label}
-      </a>
-    </>
-  )
-  const items: Array<Item> = [
-    {
-      name: 'mppx',
-      href: 'https://github.com/wevm/mppx',
-      meta: collab('Tempo', 'https://tempo.xyz'),
-      desc: 'TypeScript Interface for Machine Payments Protocol.',
-    },
-    {
-      name: 'Accounts',
-      href: 'https://github.com/tempoxyz/accounts',
-      meta: collab('Tempo', 'https://tempo.xyz'),
-      desc: 'Account abstraction primitives.',
-    },
-    {
-      name: 'Porto',
-      href: 'https://github.com/ithacaxyz/porto',
-      meta: collab('Ithaca', 'https://ithaca.xyz'),
-      desc: 'Next-gen Account for Ethereum.',
-    },
-    {
-      name: 'Frog',
-      href: 'https://github.com/wevm/frog',
-      meta: collab('Paradigm', 'https://paradigm.xyz'),
-      desc: 'Framework for Farcaster Frames 🐸',
-    },
-    {
-      name: 'Rivet',
-      href: 'https://github.com/paradigmxyz/rivet',
-      meta: collab('Paradigm', 'https://paradigm.xyz'),
-      desc: 'Developer Wallet & DevTools for Anvil.',
-    },
-  ]
-  return (
-    <Section title="Collaborations">
-      <Items items={items} collab />
+      <Items
+        items={config.highlighted.projects.map((p) => {
+          const repo = stars?.[p.github]
+          return {
+            name: p.name,
+            href: p.href ?? repo?.homepageUrl ?? `https://github.com/${p.github}`,
+            desc: p.desc ?? repo?.description ?? '',
+          }
+        })}
+      />
     </Section>
   )
 }
 
 function Team() {
-  const items: Array<Item> = [
-    {
-      name: 'tmm',
-      href: 'https://github.com/tmm',
-      desc: (
-        <>
-          <a href="https://github.com/tmm" target="_blank" rel="noopener noreferrer">
-            GitHub
-          </a>
-          ,{' '}
-          <a href="https://x.com/awkweb" target="_blank" rel="noopener noreferrer">
-            Twitter
-          </a>
-        </>
-      ),
-    },
-    {
-      name: 'jxom',
-      href: 'https://github.com/jxom',
-      desc: (
-        <>
-          <a href="https://github.com/jxom" target="_blank" rel="noopener noreferrer">
-            GitHub
-          </a>
-          ,{' '}
-          <a href="https://x.com/_jxom" target="_blank" rel="noopener noreferrer">
-            Twitter
-          </a>
-        </>
-      ),
-    },
-  ]
   return (
     <Section title="Team">
-      <Items items={items} />
+      <Items
+        items={config.team.map((t) => ({
+          name: t.handle,
+          href: `https://github.com/${t.github}`,
+          desc: (
+            <>
+              <a href={`https://github.com/${t.github}`} target="_blank" rel="noopener noreferrer">
+                GitHub
+              </a>
+              {t.twitter && (
+                <>
+                  ,{' '}
+                  <a href={`https://x.com/${t.twitter}`} target="_blank" rel="noopener noreferrer">
+                    Twitter
+                  </a>
+                </>
+              )}
+            </>
+          ),
+        }))}
+      />
     </Section>
   )
 }
 
-type Sponsor = { name: string; href: string; svg: React.ReactNode }
-
-const sponsors: Array<Sponsor> = [
-  {
-    name: 'Paradigm',
-    href: 'https://paradigm.xyz',
-    svg: (
-      <svg viewBox="0 0 200 32" className="block h-[22px] w-auto text-primary">
-        <path d="M16 4 L28 16 L16 28 L4 16 Z" fill="currentColor" />
-        <text
-          x="38"
-          y="23"
-          fontFamily="Helvetica Now Display, Helvetica, Arial, sans-serif"
-          fontSize="20"
-          fontWeight="700"
-          letterSpacing="0.14em"
-          fill="currentColor"
-        >
-          PARADIGM
-        </text>
-      </svg>
-    ),
-  },
-  {
-    name: 'Tempo',
-    href: 'https://tempo.xyz',
-    svg: (
-      <svg viewBox="0 0 130 32" className="block h-[22px] w-auto text-primary">
-        <circle cx="16" cy="16" r="11" fill="none" stroke="currentColor" strokeWidth="2.5" />
-        <circle cx="16" cy="16" r="2.5" fill="currentColor" />
-        <text
-          x="36"
-          y="24"
-          fontFamily="Helvetica Now Display, Helvetica, Arial, sans-serif"
-          fontSize="22"
-          fontWeight="500"
-          letterSpacing="-0.02em"
-          fill="currentColor"
-        >
-          tempo
-        </text>
-      </svg>
-    ),
-  },
-  {
-    name: 'Stripe',
-    href: 'https://stripe.com',
-    svg: (
-      <svg viewBox="0 0 110 32" className="block h-[22px] w-auto text-primary">
-        <text
-          x="0"
-          y="24"
-          fontFamily="Helvetica Now Display, Helvetica, Arial, sans-serif"
-          fontSize="22"
-          fontWeight="700"
-          letterSpacing="-0.03em"
-          fill="currentColor"
-        >
-          stripe
-        </text>
-      </svg>
-    ),
-  },
-  {
-    name: 'Polymarket',
-    href: 'https://polymarket.com',
-    svg: (
-      <svg viewBox="0 0 180 32" className="block h-[22px] w-auto text-primary">
-        <rect x="2" y="6" width="20" height="20" fill="currentColor" />
-        <text
-          x="30"
-          y="24"
-          fontFamily="Helvetica Now Display, Helvetica, Arial, sans-serif"
-          fontSize="22"
-          fontWeight="500"
-          letterSpacing="-0.01em"
-          fill="currentColor"
-        >
-          Polymarket
-        </text>
-      </svg>
-    ),
-  },
-  {
-    name: 'Privy',
-    href: 'https://privy.io',
-    svg: (
-      <svg viewBox="0 0 90 32" className="block h-[22px] w-auto text-primary">
-        <text
-          x="0"
-          y="24"
-          fontFamily="Helvetica Now Display, Helvetica, Arial, sans-serif"
-          fontSize="22"
-          fontWeight="700"
-          letterSpacing="-0.04em"
-          fill="currentColor"
-        >
-          Privy
-        </text>
-      </svg>
-    ),
-  },
-  {
-    name: 'Family',
-    href: 'https://family.co',
-    svg: (
-      <svg viewBox="0 0 110 32" className="block h-[22px] w-auto text-primary">
-        <text
-          x="0"
-          y="24"
-          fontFamily="Helvetica Now Display, Helvetica, Arial, sans-serif"
-          fontSize="22"
-          fontWeight="500"
-          letterSpacing="0.02em"
-          fill="currentColor"
-        >
-          Family
-        </text>
-      </svg>
-    ),
-  },
-  {
-    name: 'Zora',
-    href: 'https://zora.co',
-    svg: (
-      <svg viewBox="0 0 110 32" className="block h-[22px] w-auto text-primary">
-        <circle cx="14" cy="16" r="10" fill="none" stroke="currentColor" strokeWidth="3" />
-        <text
-          x="32"
-          y="24"
-          fontFamily="Helvetica Now Display, Helvetica, Arial, sans-serif"
-          fontSize="22"
-          fontWeight="700"
-          letterSpacing="-0.02em"
-          fill="currentColor"
-        >
-          Zora
-        </text>
-      </svg>
-    ),
-  },
-  {
-    name: 'Dynamic',
-    href: 'https://dynamic.xyz',
-    svg: (
-      <svg viewBox="0 0 130 32" className="block h-[22px] w-auto text-primary">
-        <text
-          x="0"
-          y="24"
-          fontFamily="Helvetica Now Display, Helvetica, Arial, sans-serif"
-          fontSize="22"
-          fontWeight="500"
-          letterSpacing="-0.01em"
-          fill="currentColor"
-        >
-          dynamic
-        </text>
-      </svg>
-    ),
-  },
-  {
-    name: 'Context',
-    href: 'https://context.app',
-    svg: (
-      <svg viewBox="0 0 130 32" className="block h-[22px] w-auto text-primary">
-        <text
-          x="0"
-          y="24"
-          fontFamily="Helvetica Now Display, Helvetica, Arial, sans-serif"
-          fontSize="22"
-          fontWeight="500"
-          letterSpacing="0.02em"
-          fill="currentColor"
-        >
-          Context
-        </text>
-      </svg>
-    ),
-  },
-  {
-    name: 'Sushi',
-    href: 'https://sushi.com',
-    svg: (
-      <svg viewBox="0 0 110 32" className="block h-[22px] w-auto text-primary">
-        <text
-          x="0"
-          y="24"
-          fontFamily="Helvetica Now Display, Helvetica, Arial, sans-serif"
-          fontSize="22"
-          fontWeight="700"
-          letterSpacing="-0.02em"
-          fill="currentColor"
-        >
-          SUSHI
-        </text>
-      </svg>
-    ),
-  },
-  {
-    name: 'PancakeSwap',
-    href: 'https://pancakeswap.finance',
-    svg: (
-      <svg viewBox="0 0 170 32" className="block h-[22px] w-auto text-primary">
-        <text
-          x="0"
-          y="24"
-          fontFamily="Helvetica Now Display, Helvetica, Arial, sans-serif"
-          fontSize="22"
-          fontWeight="700"
-          letterSpacing="-0.01em"
-          fill="currentColor"
-        >
-          PancakeSwap
-        </text>
-      </svg>
-    ),
-  },
-  {
-    name: 'Pimlico',
-    href: 'https://pimlico.io',
-    svg: (
-      <svg viewBox="0 0 120 32" className="block h-[22px] w-auto text-primary">
-        <text
-          x="0"
-          y="24"
-          fontFamily="Helvetica Now Display, Helvetica, Arial, sans-serif"
-          fontSize="22"
-          fontWeight="500"
-          letterSpacing="0.01em"
-          fill="currentColor"
-        >
-          pimlico
-        </text>
-      </svg>
-    ),
-  },
-  {
-    name: 'Syndicate',
-    href: 'https://syndicate.io',
-    svg: (
-      <svg viewBox="0 0 140 32" className="block h-[22px] w-auto text-primary">
-        <text
-          x="0"
-          y="24"
-          fontFamily="Helvetica Now Display, Helvetica, Arial, sans-serif"
-          fontSize="22"
-          fontWeight="500"
-          letterSpacing="-0.01em"
-          fill="currentColor"
-        >
-          Syndicate
-        </text>
-      </svg>
-    ),
-  },
-  {
-    name: 'Relay',
-    href: 'https://relay.link',
-    svg: (
-      <svg viewBox="0 0 100 32" className="block h-[22px] w-auto text-primary">
-        <text
-          x="0"
-          y="24"
-          fontFamily="Helvetica Now Display, Helvetica, Arial, sans-serif"
-          fontSize="22"
-          fontWeight="700"
-          letterSpacing="-0.02em"
-          fill="currentColor"
-        >
-          Relay
-        </text>
-      </svg>
-    ),
-  },
-  {
-    name: 'Web3Auth',
-    href: 'https://web3auth.io',
-    svg: (
-      <svg viewBox="0 0 130 32" className="block h-[22px] w-auto text-primary">
-        <text
-          x="0"
-          y="24"
-          fontFamily="Helvetica Now Display, Helvetica, Arial, sans-serif"
-          fontSize="22"
-          fontWeight="500"
-          letterSpacing="0.01em"
-          fill="currentColor"
-        >
-          Web3Auth
-        </text>
-      </svg>
-    ),
-  },
-  {
-    name: 'Sequence',
-    href: 'https://sequence.xyz',
-    svg: (
-      <svg viewBox="0 0 140 32" className="block h-[22px] w-auto text-primary">
-        <text
-          x="0"
-          y="24"
-          fontFamily="Helvetica Now Display, Helvetica, Arial, sans-serif"
-          fontSize="22"
-          fontWeight="500"
-          letterSpacing="-0.01em"
-          fill="currentColor"
-        >
-          Sequence
-        </text>
-      </svg>
-    ),
-  },
-]
+function Collaborators() {
+  const { sponsors, logoManifest } = Route.useLoaderData()
+  const excluded = new Set(config.excludedSponsors ?? [])
+  const collaborators = (sponsors ?? []).filter(
+    (s) => s.type === 'collaborator' && !excluded.has(s.login),
+  )
+  if (collaborators.length === 0) return null
+  return (
+    <Section title="Collaborators">
+      <p className="mb-7 text-muted">
+        Wevm is an independent collective proudly supported by our collaborators.
+      </p>
+      <ul className="m-0 grid list-none grid-cols-2 gap-x-10 gap-y-7 p-0">
+        {collaborators.map((s) => (
+          <li key={s.login} className="flex min-h-6 items-center justify-start">
+            <a
+              href={s.websiteUrl ?? `https://github.com/${s.login}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={s.name}
+              className="flex w-full items-center no-underline opacity-75 transition-opacity duration-100 hover:opacity-100"
+            >
+              <Mark height={60} manifest={logoManifest} name={s.name} slug={s.login} />
+            </a>
+          </li>
+        ))}
+      </ul>
+    </Section>
+  )
+}
 
 function Sponsors() {
+  const { sponsors, logoManifest } = Route.useLoaderData()
+  const excluded = new Set(config.excludedSponsors ?? [])
+  const rest = (sponsors ?? []).filter(
+    (s) => s.type !== 'collaborator' && !excluded.has(s.login),
+  )
   return (
     <Section title="Sponsors">
       <p className="mb-7 text-muted">
-        Want to support our work or collaborate?{' '}
+        Want to support our work?{' '}
         <a href="https://github.com/sponsors/wevm" target="_blank" rel="noopener noreferrer">
           Become a sponsor
         </a>
         .
       </p>
       <ul className="m-0 grid list-none grid-cols-4 gap-x-6 gap-y-7 p-0 max-[640px]:grid-cols-2">
-        {sponsors.map((s) => (
-          <li key={s.name} className="flex min-h-6 items-center justify-start">
+        {rest.map((s) => (
+          <li key={s.login} className="flex min-h-6 items-center justify-start">
             <a
-              href={s.href}
+              href={s.websiteUrl ?? `https://github.com/${s.login}`}
               target="_blank"
               rel="noopener noreferrer"
               aria-label={s.name}
-              className="inline-flex items-center no-underline opacity-75 transition-opacity duration-100 hover:opacity-100"
+              className="flex w-full items-center no-underline opacity-75 transition-opacity duration-100 hover:opacity-100"
             >
-              {s.svg}
+              <Mark height={22} manifest={logoManifest} name={s.name} slug={s.login} />
             </a>
           </li>
         ))}

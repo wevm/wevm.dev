@@ -14,11 +14,13 @@ Conventions for working in this repo.
 - **No enums** — use `as const` objects for fixed sets.
 - **`const` generic modifier** — use to preserve literal types for full inference.
 - **camelCase generics** — `<const args extends z.ZodObject<any>>` not `<T>`.
+- **Read worker env globally for worker-only code; thread it for shared code** — when a module is only ever loaded in the worker runtime (e.g. `src/lib/sources.ts`, the SSR loader), import the env at module top: `import { env } from 'cloudflare:workers'`. Bindings (KV, R2, D1, etc.) are NOT exposed on `process.env` — only env vars + secrets are — so `cloudflare:workers` is the canonical source. When a module is shared with a Node script that runs via `getPlatformProxy` (e.g. `worker/sync.ts` shared with `scripts/gen:data.ts`, or `worker/kv.ts` consumed by both the SSR loader and the script via sync), `cloudflare:workers` won't resolve in Node, so accept `env: Cloudflare.Env` (or a binding like `kv: KVNamespace`) as a parameter and let the caller pass `c.env` (worker), `env` from `cloudflare:workers` (SSR loader), or the proxy env (script).
 - **Options default `= {}`** — use `options: Options = {}` not `options?: Options`.
 - **Namespace params and return types** — place function parameter and return types in a `declare namespace` matching the function name (e.g. `local.Options`, `createAccount.ReturnType`).
 - **Minimal variable names** — prefer short, obvious names. Use `options` not `serveOptions`, `fn` not `callbackFunction`, etc. Context makes meaning clear.
 - **camelCase for constants** — module-level constants use `camelCase` (`sponsors`, `repos`), not `SCREAMING_SNAKE_CASE` (`SPONSORS`, `REPOS`).
-- **No camelCase / conjunctive variable names** — when a name needs disambiguation, prefer a snake-case suffix or a suffix-style separator over CamelCase concatenation. Use `options` (or `options_fill`) not `fillOptions`, `client` (or `client_fill`) not `fillClient`. The base noun stays the same so reading flows; the suffix only kicks in when the same name is reused in scope.
+- **Prefer single-word variable names** — default to a single word: `repo` not `repoData`, `pkg` not `pkgFile`, `entry` not `dirEntry`, `text` not `pkgText`. The surrounding scope (function name, parameter type, namespace) already supplies context, so the variable doesn't need to repeat it.
+- **No camelCase / conjunctive variable names** — only when a single word genuinely collides in scope, prefer a snake-case suffix over CamelCase concatenation. Use `options` (or `options_fill`) not `fillOptions`, `client` (or `client_fill`) not `fillClient`. The base noun stays the same so reading flows; the suffix only kicks in when the same name is reused in scope.
 - **Don't repeat the module name in exports** — if the module is `mode.ts`, export `get` not `getMode`. Callers write `Mode.get()` which already reads clearly. (See **Module Conventions** for the full pattern.)
 - **No redundant type annotations** — if the return type of a function already covers it, don't annotate intermediate variables. Let the return type do the work (e.g. `const cli = { ... }` not `const cli: ReturnType = { ... }`).
 - **Return directly** — don't declare a variable just to return it. Use `return { ... }` unless the variable is needed (e.g. self-reference for chaining).
@@ -47,23 +49,36 @@ Conventions for working in this repo.
 - **Lib modules are instantiable yet functional** — design library modules so the same surface supports both stateful instances and pure function calls. State, when needed, is passed in explicitly as the first argument; there are no hidden singletons or `new ClassName()` requirements.
 - **Implicit namespace import** — consume lib modules as `import * as Fetcher from './fetcher.js'`, never `import { run } from './fetcher.js'`. The namespace **is** the public API surface; the file name owns the noun.
 - **`from` is the instance constructor** — the conventional verb to instantiate is `from`. Callers write `Fetcher.from(options)`, `Cache.from(options)`. Avoid `init`, `create`, `make`, `new*`.
+- **Name the instance type after the module** — the type returned by `from`/`get` takes the module's PascalCase name (`Fetcher`, `Cache`, `Sync`). Avoid the generic `Instance` name. Callers write `const fetcher: Fetcher.Fetcher = Fetcher.from(...)` or, more often, just rely on inference.
 - **Verby exports** — non-constructor exports are verbs: `run`, `start`, `stop`, `get`, `set`, `refresh`, `parse`. Callers write `Fetcher.run(…)`, `Cache.get(key)`, `Stats.refresh()`. Reading the call site reveals both subject (namespace) and action (verb).
 - **No module name in function names** — never `Fetcher.runFetcher()`, `Cache.getCache()`, `Stats.refreshStats()`. The namespace already says it. This is a stricter restatement of "Don't repeat the module name in exports".
 - **Shape**: types live alongside verbs in the same file. Use `declare namespace verb { type Options; type ReturnType }` (per existing TypeScript convention) so callers see `Fetcher.run.Options` from the namespace.
 
   ```ts
   // fetcher.ts
-  export type Instance = { /* state */ }
-
-  export function from(options: from.Options = {}): Instance { /* ... */ }
-  export declare namespace from {
-    type Options = { /* ... */ }
+  export type Fetcher = {
+    /* state */
   }
 
-  export function run(instance: Instance, input: run.Input): Promise<run.ReturnType> { /* ... */ }
+  export function from(options: from.Options = {}): Fetcher {
+    /* ... */
+  }
+  export declare namespace from {
+    type Options = {
+      /* ... */
+    }
+  }
+
+  export function run(fetcher: Fetcher, input: run.Input): Promise<run.ReturnType> {
+    /* ... */
+  }
   export declare namespace run {
-    type Input = { /* ... */ }
-    type ReturnType = { /* ... */ }
+    type Input = {
+      /* ... */
+    }
+    type ReturnType = {
+      /* ... */
+    }
   }
   ```
 
@@ -71,8 +86,12 @@ Conventions for working in this repo.
   // caller.ts
   import * as Fetcher from './fetcher.js'
 
-  const fetcher = Fetcher.from({ /* ... */ })
-  await Fetcher.run(fetcher, { /* ... */ })
+  const fetcher = Fetcher.from({
+    /* ... */
+  })
+  await Fetcher.run(fetcher, {
+    /* ... */
+  })
   ```
 
 ## Type Inference Conventions
