@@ -35,7 +35,7 @@ export async function runAll(env: Cloudflare.Env): Promise<void> {
  */
 export async function runStars(env: Cloudflare.Env): Promise<void> {
   const kv = Kv.from(env.KV)
-  const github = Github.from(env.GITHUB_TOKEN)
+  const github = Github.from(env.GH_PAT)
   const repos = await Github.fetchRepos(github, org)
   const stars: Github.Stars = {}
   for (const r of repos)
@@ -55,7 +55,7 @@ export async function runStars(env: Cloudflare.Env): Promise<void> {
  */
 export async function runDownloads(env: Cloudflare.Env): Promise<void> {
   const kv = Kv.from(env.KV)
-  const github = Github.from(env.GITHUB_TOKEN)
+  const github = Github.from(env.GH_PAT)
   const repos = await Github.fetchRepos(github, org)
   const pkgs = await Github.fetchPackageJsons(github, repos)
   const names = new Set<string>()
@@ -84,7 +84,7 @@ export async function runDownloads(env: Cloudflare.Env): Promise<void> {
  */
 export async function runSponsors(env: Cloudflare.Env): Promise<void> {
   const kv = Kv.from(env.KV)
-  const github = Github.from(env.GITHUB_TOKEN)
+  const github = Github.from(env.GH_PAT)
   const live = await Github.fetchSponsors(github, org)
 
   // Read through the structural `Config` type — the `define` `const`
