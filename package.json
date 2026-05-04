@@ -2,6 +2,7 @@
   "name": "wevm.dev",
   "private": true,
   "type": "module",
+  "packageManager": "pnpm@10.33.0",
   "sideEffects": false,
   "scripts": {
     "dev": "vp dev",
