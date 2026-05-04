@@ -12,4 +12,7 @@
     // Replace `id` with the value wrangler prints after creation.
     { "binding": "KV", "id": "REPLACE_WITH_KV_NAMESPACE_ID" },
   ],
+  "triggers": {
+    "crons": ["0 * * * *"],
+  },
 }
