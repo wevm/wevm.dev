@@ -73,7 +73,11 @@ const measureHeight = 256
  * Throws on unparseable input — the producer in `Sync.runLogos`
  * catches per-slug so a single bad source doesn't sink the run.
  */
-export async function transform(svg: string): Promise<string> {
+export async function transform(
+  svg: string,
+  options: transform.Options = {},
+): Promise<string> {
+  const { mode = 'mono' } = options
   const optimized = optimize(svg, {
     multipass: true,
     plugins: [
@@ -95,25 +99,28 @@ export async function transform(svg: string): Promise<string> {
   //    so step (2) only has to consider element-local paint.
   const classFills = collectClassFills(ast)
   applyClassFills(ast, classFills)
+  // Snapshot the colored, normalized SVG before monoize destroys colors —
+  // `mode: 'color'` re-uses these bytes verbatim inside the final viewBox.
+  const coloredSvg = stringify(ast)
+  const sourceBox = parseViewBox(coloredSvg)
+  if (!sourceBox) throw new Error('viewBox parse failed')
+  const coloredInner = coloredSvg.replace(/^<svg\b[^>]*>/i, '').replace(/<\/svg>\s*$/i, '')
+
   // 2) decide — geometrically — whether white-fill paths are cutouts
   //    inside a colored silhouette (opensea boat, brave lion face)
   //    or standalone ink (thirdweb's dark-mode wordmark, paradigm's
   //    white wordmark next to its green icon). See {@link detectCutoutWhite}.
-  const whiteIsCutout = detectCutoutWhite(stringify(ast))
-  // 3) rewrite every paint to white (ink) / black (cutout) / none
+  const whiteIsCutout = detectCutoutWhite(coloredSvg)
+  // 3) rewrite every paint to white (ink) / black (cutout) / none.
+  //    Always run, even for `mode: 'color'` — the mono mask is the input
+  //    to the optical-bbox measurement that drives viewBox re-targeting.
   monoize(ast, whiteIsCutout)
   const monoSvg = stringify(ast)
-
-  const sourceBox = parseViewBox(monoSvg)
-  if (!sourceBox) throw new Error('viewBox parse failed')
-
-  // Extract the inner children of the source SVG once — same bytes
-  // are reused inside both the measurement wrap and the final wrap.
-  const inner = monoSvg.replace(/^<svg\b[^>]*>/i, '').replace(/<\/svg>\s*$/i, '')
+  const monoInner = monoSvg.replace(/^<svg\b[^>]*>/i, '').replace(/<\/svg>\s*$/i, '')
 
   // Measure the alpha bbox of the masked rect — that's the silhouette
   // with cutouts knocked out, which is what the user actually sees.
-  const probe = wrapMask({ inner, sourceBox, color: 'black', dims: `viewBox="${sourceBox.x} ${sourceBox.y} ${sourceBox.width} ${sourceBox.height}"` })
+  const probe = wrapMask({ inner: monoInner, sourceBox, color: 'black', dims: `viewBox="${sourceBox.x} ${sourceBox.y} ${sourceBox.width} ${sourceBox.height}"` })
   const resvg = new Resvg(probe, {
     fitTo: { mode: 'height', value: measureHeight },
     background: 'rgba(255,255,255,0)',
@@ -146,7 +153,22 @@ export async function transform(svg: string): Promise<string> {
   const finalWidth = canvasHeight * ratio
   const dims = `viewBox="${finalBox.x} ${finalBox.y} ${finalBox.width} ${finalBox.height}" width="${finalWidth}" height="${canvasHeight}"`
 
-  return wrapMask({ inner, sourceBox, color: 'white', dims })
+  if (mode === 'mono') return wrapMask({ inner: monoInner, sourceBox, color: 'white', dims })
+  // `mode: 'color'` — emit the (colored, normalized) inner inside the
+  // final viewBox. No mask, no `currentColor` recolor — bytes carry the
+  // brand's native palette so the page can render them as-is.
+  return `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" ${dims}>${coloredInner}</svg>`
+}
+export declare namespace transform {
+  type Options = {
+    /**
+     * `'mono'` (default) — flatten every paint to a `currentColor` mask
+     * with cutouts preserved (page recolors via CSS `filter`).
+     * `'color'` — preserve the brand's native palette while applying the
+     * same SVGO cleanup + viewBox re-targeting as `'mono'`.
+     */
+    mode?: 'mono' | 'color'
+  }
 }
 
 

@@ -23,6 +23,9 @@ importers:
       '@tanstack/react-start':
         specifier: ^1.167.59
         version: 1.167.59(@voidzero-dev/vite-plus-core@0.1.20(@types/node@22.19.17)(esbuild@0.27.3)(jiti@2.6.1)(tsx@4.21.0)(typescript@5.9.3))(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
+      hono:
+        specifier: ^4.12.16
+        version: 4.12.16
       react:
         specifier: ^19.0.0
         version: 19.2.5
@@ -1629,6 +1632,10 @@ packages:
     peerDependenciesMeta:
       crossws:
         optional: true
+
+  hono@4.12.16:
+    resolution: {integrity: sha512-jN0ZewiNAWSe5khM3EyCmBb250+b40wWbwNILNfEvq84VREWwOIkuUsFONk/3i3nqkz7Oe1PcpM2mwQEK2L9Kg==}
+    engines: {node: '>=16.9.0'}
 
   htmlparser2@10.1.0:
     resolution: {integrity: sha512-VTZkM9GWRAtEpveh7MSF6SjjrpNVNNVJfFup7xTY3UpFtm67foy9HDVXneLtFVt4pMz5kZtgNcvCniNFb1hlEQ==}
@@ -3365,6 +3372,8 @@ snapshots:
     dependencies:
       rou3: 0.8.1
       srvx: 0.11.15
+
+  hono@4.12.16: {}
 
   htmlparser2@10.1.0:
     dependencies:

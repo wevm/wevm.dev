@@ -9,7 +9,7 @@ Site config (curated lists, sponsors, team) lives in
 
 ### Adding a sponsor logo
 
-1. Drop the brand's wordmark SVG at `public/logos/<github-login>.svg`
+1. Drop the brand's wordmark SVG at `public/logos/raw/<github-login>.svg`
    (lowercase, matches the GitHub org/user login exactly).
 2. _Optional_: tune the optical scale via `logoOverrides` if the
    wordmark reads visually too heavy or too light at the default 1×.

@@ -1,6 +1,6 @@
 import { createServerFn } from '@tanstack/react-start'
 import { env } from 'cloudflare:workers'
-import logoManifest from '../../public/logos/mono/manifest.json'
+import logoManifest from '../../public/logos/manifest.json'
 import * as Kv from '../../worker/lib/kv'
 import type * as Github from '../../worker/sources/github'
 import type * as Logos from '../../worker/sources/logos'

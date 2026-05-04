@@ -28,9 +28,9 @@ export default Config.define({
     ],
   },
   logoOverrides: {
-    paradigmxyz: { scale: 1.3 },
+    paradigmxyz: { scale: 1.5 },
     polymarket: { scale: 1.5 },
-    'rainbow-me': { scale: 1.2 },
+    'rainbow-me': { scale: 0.9 },
     stripe: { scale: 1.3 },
     tempoxyz: { scale: 0.7 },
   },
