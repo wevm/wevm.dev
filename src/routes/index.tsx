@@ -60,21 +60,24 @@ function useTicking(
       cached = raw ? JSON.parse(raw) : null
     } catch {}
     const fresh =
-      cached !== null &&
-      Date.now() - cached.time < tickingCacheMs &&
-      cached.value >= initial
-    const next = fresh ? (cached as { value: number; time: number }) : { value: initial, time: Date.now() }
-    if (!fresh) try { localStorage.setItem(storageKey, JSON.stringify(next)) } catch {}
+      cached !== null && Date.now() - cached.time < tickingCacheMs && cached.value >= initial
+    const next = fresh
+      ? (cached as { value: number; time: number })
+      : { value: initial, time: Date.now() }
+    if (!fresh)
+      try {
+        localStorage.setItem(storageKey, JSON.stringify(next))
+      } catch {}
     setAnchor(next)
     setNow(Date.now())
-    let raf = 0
-    const tick = () => {
-      setNow(Date.now())
-      raf = requestAnimationFrame(tick)
-    }
-    raf = requestAnimationFrame(tick)
-    return () => cancelAnimationFrame(raf)
-  }, [initial, storageKey])
+    // Tick once per visible increment instead of every animation frame —
+    // re-rendering 60×/sec for a counter that updates ~ratePerMinute is wasted
+    // CPU and an INP hit. setInterval at the increment cadence keeps the
+    // counter live without thrash.
+    const intervalMs = Math.max(250, Math.round(60_000 / ratePerMinute))
+    const id = setInterval(() => setNow(Date.now()), intervalMs)
+    return () => clearInterval(id)
+  }, [initial, ratePerMinute, storageKey])
 
   if (!anchor) return initial
   return anchor.value + Math.floor(((now - anchor.time) / 60_000) * ratePerMinute)
@@ -99,13 +102,12 @@ function Topbar() {
   return (
     <header className="mb-8 flex items-center justify-between gap-4 border-b border-dashed border-soft pb-5 max-[640px]:flex-col max-[640px]:items-start">
       <div className="flex items-center gap-[14px]">
-        <h1 className="sr-only">wevm</h1>
         <svg
           width="80"
           height="16"
           viewBox="0 0 311 63"
           fill="none"
-          xmlns="https://www.w3.org/2000/svg"
+          xmlns="http://www.w3.org/2000/svg"
           aria-hidden="true"
           className="block text-primary"
         >
@@ -159,22 +161,26 @@ function Hero() {
   return (
     <section className="mb-10 grid grid-cols-1 gap-6">
       <div>
-        <div className="text-[clamp(32px,6vw,64px)] font-bold leading-none tracking-[-0.03em]">
+        {/* Single semantic h1 for the page — visually styled as the hero.
+            "Wevm — " is sr-only so screen readers and crawlers see the brand
+            up-front while the visual hero stays unchanged. */}
+        <h1 className="text-[clamp(32px,6vw,64px)] font-bold leading-none tracking-[-0.03em]">
+          <span className="sr-only">Wevm — </span>
           TypeScript tools
           <br />
           for the{' '}
           <i className="font-serif font-normal italic tracking-[-0.015em] px-[0.04em]">frontier</i>
-        </div>
+        </h1>
         <p className="mt-[18px] max-w-[56ch] text-[clamp(16px,1.6vw,19px)] text-muted">
           <strong className="text-primary font-bold">Wevm</strong> is a collective building
-          open-source TypeScript software used by hundreds of enterprise organizations and millions of
-          developers worldwide.
+          open-source TypeScript software used by hundreds of enterprise organizations and millions
+          of developers worldwide.
         </p>
         <div className="mt-6 flex flex-wrap gap-[10px]">
-          <Button href="https://github.com/wevm">
+          <Button href="https://github.com/wevm" rel="me">
             GitHub <span className="font-mono">→</span>
           </Button>
-          <Button href="https://github.com/sponsors/wevm">
+          <Button href="https://github.com/sponsors/wevm" rel="me">
             Sponsor <span className="font-mono">→</span>
           </Button>
           <Button className="max-sm:hidden" href="mailto:dev@wevm.dev">
@@ -191,17 +197,23 @@ function Button({
   children,
   className = '',
   href,
+  rel,
 }: {
   children: React.ReactNode
   className?: string
   href: string
+  /** Extra `rel` tokens (e.g. `'me'` for wevm-owned profile links). Merged
+   *  with the default `noopener noreferrer` for external links. */
+  rel?: string
 }) {
   const external = !href.startsWith('mailto:')
+  const relValue = external ? ['noopener', 'noreferrer', rel].filter(Boolean).join(' ') : rel
   return (
     <a
       className={`inline-flex items-center gap-2 border border-primary bg-panel px-[14px] py-2 text-sm text-primary no-underline transition-colors duration-100 hover:bg-inverted hover:text-inverted ${className}`}
       href={href}
-      {...(external ? { rel: 'noopener noreferrer', target: '_blank' } : {})}
+      {...(external ? { target: '_blank' } : {})}
+      {...(relValue ? { rel: relValue } : {})}
     >
       {children}
     </a>
@@ -219,13 +231,16 @@ function UsedBy() {
         <div className="flex w-max animate-marquee group-hover:[animation-play-state:paused]">
           <ul className="m-0 flex shrink-0 list-none items-center text-primary">
             {config.usedBy.map((u) => (
-              <UsedByCell key={u.slug} href={u.href} manifest={logoManifest} name={u.name} slug={u.slug} />
+              <UsedByCell
+                key={u.slug}
+                href={u.href}
+                manifest={logoManifest}
+                name={u.name}
+                slug={u.slug}
+              />
             ))}
           </ul>
-          <ul
-            className="m-0 flex shrink-0 list-none items-center text-primary"
-            aria-hidden="true"
-          >
+          <ul className="m-0 flex shrink-0 list-none items-center text-primary" aria-hidden="true">
             {config.usedBy.map((u) => (
               <UsedByCell
                 key={`${u.slug}-dup`}
@@ -275,9 +290,9 @@ function UsedByCell({
 // arbitrary casing (e.g. `Polymarket`, `SyndicateProtocol`) but config
 // authors shouldn't have to mirror that casing — match on lowercase.
 const logoOverrides = Object.fromEntries(
-  Object.entries(
-    (config.logoOverrides as Record<string, { scale?: number }>) ?? {},
-  ).map(([k, v]) => [k.toLowerCase(), v]),
+  Object.entries((config.logoOverrides as Record<string, { scale?: number }>) ?? {}).map(
+    ([k, v]) => [k.toLowerCase(), v],
+  ),
 )
 
 /**
@@ -311,7 +326,10 @@ function Mark({
   const renderedHeight = height * scale
   return (
     <img
-      alt={name}
+      // "{name} logo" is more descriptive for SEO image search than just the
+      // brand name. The parent <a> still carries `aria-label={name}` for SR
+      // brevity, so we don't double-announce "logo" to assistive tech.
+      alt={`${name} logo`}
       className="block w-auto transition-[filter] duration-100"
       data-mark
       height={renderedHeight}
@@ -326,7 +344,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   return (
     <section className="mt-9 border-t border-primary pt-7">
       <div className="mb-2 flex items-baseline justify-between gap-3">
-        <div className="text-[22px] font-bold tracking-[-0.01em]">{title}</div>
+        <h2 className="text-[22px] font-bold tracking-[-0.01em]">{title}</h2>
       </div>
       {children}
     </section>
@@ -521,9 +539,7 @@ function Collaborators() {
 function Sponsors() {
   const { sponsors, logoManifest } = Route.useLoaderData()
   const excluded = new Set(config.excludedSponsors ?? [])
-  const rest = (sponsors ?? []).filter(
-    (s) => s.type !== 'collaborator' && !excluded.has(s.login),
-  )
+  const rest = (sponsors ?? []).filter((s) => s.type !== 'collaborator' && !excluded.has(s.login))
   return (
     <Section title="Sponsors">
       <p className="mb-7 text-muted">

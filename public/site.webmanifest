@@ -1,6 +1,8 @@
 {
-  "name": "",
-  "short_name": "",
+  "name": "Wevm",
+  "short_name": "Wevm",
+  "description": "TypeScript tools for the frontier.",
+  "start_url": "/",
   "icons": [
     {
       "src": "/android-chrome-192x192.png",
@@ -13,7 +15,7 @@
       "type": "image/png"
     }
   ],
-  "theme_color": "#ffffff",
-  "background_color": "#ffffff",
+  "theme_color": "#0c0c0c",
+  "background_color": "#0c0c0c",
   "display": "standalone"
 }

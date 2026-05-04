@@ -7,7 +7,7 @@
     "dev": "vp dev",
     "build": "vp build && pnpm check:types",
     "preview": "vp preview",
-    "deploy": "pnpm build && wrangler deploy",
+    "deploy": "pnpm build && wrangler deploy && WRANGLER_REMOTE=true pnpm gen:data",
     "gen": "pnpm gen:data && pnpm gen:logos",
     "gen:data": "node --import tsx scripts/gen:data.ts",
     "gen:logos": "node --import tsx scripts/gen:logos.ts",
@@ -18,12 +18,14 @@
   },
   "dependencies": {
     "@octokit/graphql": "^9.0.3",
+    "@takumi-rs/wasm": "^1.1.2",
     "@tanstack/react-router": "^1.169.1",
     "@tanstack/react-router-devtools": "^1.166.13",
     "@tanstack/react-start": "^1.167.59",
     "hono": "^4.12.16",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "takumi-js": "^1.1.2"
   },
   "devDependencies": {
     "@cloudflare/vite-plugin": "^1.29.0",

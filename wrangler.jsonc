@@ -8,9 +8,10 @@
     "enabled": true,
   },
   "kv_namespaces": [
-    // Created via `wrangler kv namespace create KV`.
-    // Replace `id` with the value wrangler prints after creation.
-    { "binding": "KV", "id": "REPLACE_WITH_KV_NAMESPACE_ID" },
+    {
+      "binding": "KV",
+      "id": "534dd0b501d04cecba0dea7f1ec0cd9d"
+    },
   ],
   "triggers": {
     "crons": ["0 * * * *"],

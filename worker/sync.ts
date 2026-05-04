@@ -100,8 +100,7 @@ export async function runSponsors(env: Cloudflare.Env): Promise<void> {
   // Personal-login → highlighted-github lookup, lowercased for
   // case-insensitive matches against GitHub Sponsor logins.
   const aliases: Record<string, string> = {}
-  for (const h of highlighted)
-    if (h.alias) aliases[h.alias.toLowerCase()] = h.github
+  for (const h of highlighted) if (h.alias) aliases[h.alias.toLowerCase()] = h.github
 
   // Index live sponsors by lowercased login (post-alias) so highlighted
   // resolution can pick up tier amounts + websiteUrl + avatar without
@@ -161,5 +160,3 @@ export async function runSponsors(env: Cloudflare.Env): Promise<void> {
 
 /** Ordering for `Github.Sponsor.type`. Collaborators first, small last. */
 const typeOrder = { collaborator: 0, large: 1, small: 2 } as const
-
-

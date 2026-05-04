@@ -54,8 +54,7 @@ export async function run(): Promise<void> {
   await fs.rm(monoDir, { recursive: true, force: true })
   await fs.mkdir(monoDir, { recursive: true })
   for (const entry of await fs.readdir(colorDir, { withFileTypes: true }))
-    if (entry.isFile() && entry.name.endsWith('.svg'))
-      await fs.rm(path.join(colorDir, entry.name))
+    if (entry.isFile() && entry.name.endsWith('.svg')) await fs.rm(path.join(colorDir, entry.name))
 
   const manifest: Manifest = {}
   for (const entry of entries) {

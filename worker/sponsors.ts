@@ -96,10 +96,7 @@ export const app = new Hono<{ Bindings: Cloudflare.Env }>().on(
       // Bleed budget for any logo whose `logoOverrides.scale > 1`
       // — without padding the canvas top/bottom, a 1.5× mark on
       // the first/last row would clip outside the viewBox.
-      const maxScale = items.reduce(
-        (m, s) => Math.max(m, logoOverrides[s.login]?.scale ?? 1),
-        1,
-      )
+      const maxScale = items.reduce((m, s) => Math.max(m, logoOverrides[s.login]?.scale ?? 1), 1)
       const bleed = ((maxScale - 1) / 2) * logoH
       // Output viewBox tracks actual rendered content — `?h` only
       // shapes the column-count heuristic above, never empty space.

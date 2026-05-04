@@ -73,10 +73,7 @@ const measureHeight = 256
  * Throws on unparseable input — the producer in `Sync.runLogos`
  * catches per-slug so a single bad source doesn't sink the run.
  */
-export async function transform(
-  svg: string,
-  options: transform.Options = {},
-): Promise<string> {
+export async function transform(svg: string, options: transform.Options = {}): Promise<string> {
   const { mode = 'mono' } = options
   const optimized = optimize(svg, {
     multipass: true,
@@ -120,7 +117,12 @@ export async function transform(
 
   // Measure the alpha bbox of the masked rect — that's the silhouette
   // with cutouts knocked out, which is what the user actually sees.
-  const probe = wrapMask({ inner: monoInner, sourceBox, color: 'black', dims: `viewBox="${sourceBox.x} ${sourceBox.y} ${sourceBox.width} ${sourceBox.height}"` })
+  const probe = wrapMask({
+    inner: monoInner,
+    sourceBox,
+    color: 'black',
+    dims: `viewBox="${sourceBox.x} ${sourceBox.y} ${sourceBox.width} ${sourceBox.height}"`,
+  })
   const resvg = new Resvg(probe, {
     fitTo: { mode: 'height', value: measureHeight },
     background: 'rgba(255,255,255,0)',
@@ -170,8 +172,6 @@ export declare namespace transform {
     mode?: 'mono' | 'color'
   }
 }
-
-
 
 /**
  * Walk the SVG AST and rewrite every paint to the mono-mask palette:
@@ -445,7 +445,9 @@ type Node = {
  * width/height pair.
  */
 function parseViewBox(svg: string): { x: number; y: number; width: number; height: number } | null {
-  const match = svg.match(/viewBox\s*=\s*["']\s*([\d.\-eE]+)\s+([\d.\-eE]+)\s+([\d.\-eE]+)\s+([\d.\-eE]+)\s*["']/)
+  const match = svg.match(
+    /viewBox\s*=\s*["']\s*([\d.\-eE]+)\s+([\d.\-eE]+)\s+([\d.\-eE]+)\s+([\d.\-eE]+)\s*["']/,
+  )
   if (!match) return null
   const [, x, y, w, h] = match
   return { x: +x!, y: +y!, width: +w!, height: +h! }

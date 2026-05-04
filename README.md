@@ -34,7 +34,7 @@ pnpm deploy       # deploy
 
 pnpm gen          # seed local kv and gen logos
 pnpm gen:data     # seed local (or WRANGLER_REMOTE=true) KV with stars/downloads/sponsors
-pnpm gen:logos    # generate public/logos/mono/ from public/logos/ 
+pnpm gen:logos    # generate public/logos/mono/ from public/logos/
 pnpm gen:types    # genereate worker-configuration.d.ts
 
 pnpm check        # check code
