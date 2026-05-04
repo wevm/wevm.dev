@@ -1,0 +1,134 @@
+@import 'tailwindcss' source('./');
+
+@font-face {
+  font-family: 'Helvetica Now Display';
+  src: url('/fonts/HelveticaNowDisplay-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Helvetica Now Display';
+  src: url('/fonts/HelveticaNowDisplay-Medium.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Helvetica Now Display';
+  src: url('/fonts/HelveticaNowDisplay-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Tiempos Text';
+  src: url('/fonts/TiemposText-RegularItalic.woff2') format('woff2');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Tiempos Text';
+  src: url('/fonts/TiemposText-SemiboldItalic.woff2') format('woff2');
+  font-weight: 600;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Space Mono';
+  src: url('/fonts/SpaceMono-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@theme {
+  --font-sans:
+    'Helvetica Now Display', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, Arial,
+    sans-serif;
+  --font-serif: 'Tiempos Text', 'Iowan Old Style', Georgia, serif;
+  --font-mono: 'Space Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  --background-color-primary: light-dark(#f5f5f3, #0c0c0c);
+  --background-color-panel: light-dark(#ffffff, #131313);
+  --background-color-tag: light-dark(#fff8c5, #2a2410);
+  --background-color-hover: light-dark(#f0efe8, #1a1a1a);
+  --background-color-inverted: light-dark(#111111, #f2f2ef);
+
+  --text-color-inverted: light-dark(#f5f5f3, #0c0c0c);
+
+  --border-color-primary: light-dark(#dcdcd6, #2a2a2a);
+  --border-color-soft: light-dark(#ededea, #1f1f1f);
+
+  /*
+   * Marquee duration scales with `wevm.config.ts.usedBy.length` — target ~30 px/sec
+   * for a calm, brand-trust pace (faster reads as a stock-ticker, slower drags).
+   * Formula: (entry_count × avg_entry_px ≈ 120) / 30 ≈ duration_seconds.
+   * Tune when the entry count changes by more than a couple.
+   */
+  --animate-marquee: marquee 60s linear infinite;
+
+  --color-primary: light-dark(#111111, #f2f2ef);
+  --color-muted: light-dark(#6b6b6b, #8a8a86);
+  --color-accent: light-dark(#0a55ff, #6ea8ff);
+  --color-tag: light-dark(#1a1a1a, #ffe27a);
+}
+
+@layer base {
+  html {
+    @apply scheme-light-dark bg-primary text-primary;
+  }
+
+  body {
+    @apply font-sans font-normal antialiased leading-[1.45]
+      [text-rendering:optimizeLegibility]
+      font-features-['ss01','ss02','kern'];
+  }
+
+  *:focus-visible {
+    @apply outline-solid outline-2 outline-accent outline-offset-[0.15rem];
+  }
+
+  a {
+    @apply text-primary no-underline;
+  }
+
+  a:hover {
+    @apply underline decoration-1 underline-offset-[3px];
+  }
+}
+
+@keyframes marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-marquee {
+    animation: none;
+  }
+}
+
+/*
+ * Brand-mark colors. Bytes ship pure white so we can recolor entirely
+ * in CSS — `<img>`-rendered SVGs don't inherit parent paint, so we
+ * lean on `filter` instead of `currentColor`. `brightness(< 1)` darkens
+ * white toward gray; on hover we collapse to pure black (light) or
+ * leave it pure white (dark).
+ */
+[data-mark] {
+  filter: brightness(0.42); /* ~#6b6b6b — matches `--color-muted` light */
+}
+a:hover [data-mark] {
+  filter: brightness(0);
+}
+@media (prefers-color-scheme: dark) {
+  [data-mark] {
+    filter: brightness(0.54); /* ~#8a8a86 — matches `--color-muted` dark */
+  }
+  a:hover [data-mark] {
+    filter: none;
+  }
+}
