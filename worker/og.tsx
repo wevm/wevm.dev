@@ -49,11 +49,14 @@ function fmt(n: number | undefined): string {
   return n === undefined ? '——' : n.toLocaleString('en-US')
 }
 
-/** ★ rendered as inline SVG so Takumi doesn't try (and fail) to fetch
- * it from twemoji's CDN — `U+2605` is auto-classified as an emoji
- * regardless of variation selectors. */
-const star = `data:image/svg+xml;utf8,${encodeURIComponent(
-  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="${muted}"><path d="M12 2l2.9 7.05L22 10l-5.5 4.8L18.2 22 12 18.27 5.8 22l1.7-7.2L2 10l7.1-.95L12 2z"/></svg>`,
+/** Inline SVG icons — Takumi has no Iconify integration, so we mirror
+ * the on-page `~icons/...` imports as data URIs. Bodies are lifted
+ * verbatim from `@iconify/json` (file-icons/npm-old, simple-icons/github). */
+const npmIcon = `data:image/svg+xml;utf8,${encodeURIComponent(
+  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 524 512" fill="${muted}"><path d="M261 269h-27v-58h27zm59.5 29H379v-87h28.5v87l29 1v-88H467v87h29V182H320.5zm-146 29H234v-28.5h57v-58l1-58.5H174.5zm-146-28.5h60V211h28v87h30V182h-118zM524 327H263.5v30.5h-117v-30H0V153h524z"/></svg>`,
+)}`
+const githubIcon = `data:image/svg+xml;utf8,${encodeURIComponent(
+  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="${muted}"><path d="M12 .297c-6.63 0-12 5.373-12 12c0 5.303 3.438 9.8 8.205 11.385c.6.113.82-.258.82-.577c0-.285-.01-1.04-.015-2.04c-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729c1.205.084 1.838 1.236 1.838 1.236c1.07 1.835 2.809 1.305 3.495.998c.108-.776.417-1.305.76-1.605c-2.665-.3-5.466-1.332-5.466-5.93c0-1.31.465-2.38 1.235-3.22c-.135-.303-.54-1.523.105-3.176c0 0 1.005-.322 3.3 1.23c.96-.267 1.98-.399 3-.405c1.02.006 2.04.138 3 .405c2.28-1.552 3.285-1.23 3.285-1.23c.645 1.653.24 2.873.12 3.176c.765.84 1.23 1.91 1.23 3.22c0 4.61-2.805 5.625-5.475 5.92c.42.36.81 1.096.81 2.22c0 1.606-.015 2.896-.015 3.286c0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>`,
 )}`
 
 /**
@@ -110,11 +113,15 @@ function Card({ stars, downloads }: { stars: number | undefined; downloads: numb
       >
         <img src={wordmark} width={220} height={45} alt="" />
         <div style={{ display: 'flex', fontFamily: 'Space Mono', gap: '12px' }}>
-          <Badge label="NPM DOWNLOADS" value={fmt(downloads)} suffix="/MO" />
           <Badge
-            label="GH STARS"
+            label={<img src={npmIcon} width={29} height={28} alt="" />}
+            value={fmt(downloads)}
+            suffix="DL/MO"
+          />
+          <Badge
+            label={<img src={githubIcon} width={20} height={20} alt="" />}
             value={fmt(stars)}
-            suffix={<img src={star} width={16} height={16} alt="" />}
+            suffix="Stars"
           />
         </div>
       </div>
@@ -164,7 +171,7 @@ function Badge({
   suffix,
   value,
 }: {
-  label: string
+  label: React.ReactNode
   suffix: React.ReactNode
   value: string
 }) {

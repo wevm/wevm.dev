@@ -1,5 +1,8 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useEffect, useState } from 'react'
+import StarIcon from '~icons/ic/outline-star'
+import NpmIcon from '~icons/file-icons/npm-old'
+import GithubIcon from '~icons/simple-icons/github'
 import * as Config from '~/lib/config'
 import * as Sources from '~/lib/sources'
 import type * as Github from '../../worker/sources/github'
@@ -130,28 +133,46 @@ function Topbar() {
         </svg>
       </div>
       <div className="flex flex-wrap gap-2 font-mono">
-        <Badge
-          label="NPM DOWNLOADS"
-          value={total_downloads !== undefined ? total_downloads.toLocaleString('en-US') : dash}
-          unit="/MO"
-        />
-        <Badge
-          label="GH STARS"
-          value={total_stars !== undefined ? total_stars.toLocaleString('en-US') : dash}
-          unit="★"
-        />
+        <a
+          className="no-underline transition-colors duration-100 hover:[&>*]:bg-hover"
+          href="https://www.npmjs.com/org/wevm"
+          rel="noopener noreferrer"
+          target="_blank"
+        >
+          <Badge
+            label={<NpmIcon aria-label="NPM downloads" className="size-5" />}
+            value={total_downloads !== undefined ? total_downloads.toLocaleString('en-US') : dash}
+            unit="DL/MO"
+          />
+        </a>
+        <a
+          className="no-underline transition-colors duration-100 hover:[&>*]:bg-hover"
+          href="https://github.com/wevm"
+          rel="noopener noreferrer"
+          target="_blank"
+        >
+          <Badge
+            label={<GithubIcon aria-label="GitHub stars" className="size-3.5" />}
+            value={total_stars !== undefined ? total_stars.toLocaleString('en-US') : dash}
+            unit="Stars"
+          />
+        </a>
       </div>
     </header>
   )
 }
 
-function Badge({ label, value, unit }: { label: string; value: string; unit: string }) {
+function Badge({
+  label,
+  value,
+  unit,
+}: { label: React.ReactNode; value: string; unit: React.ReactNode }) {
   return (
-    <div className="font-mono inline-flex items-center gap-2 border border-dashed border-primary bg-panel px-2 py-1 text-[11px] uppercase leading-none tracking-[0.04em] text-primary tabular-nums whitespace-nowrap">
+    <div className="font-mono inline-flex h-7 items-center gap-2 border border-dashed border-primary bg-panel px-2 text-[11px] uppercase leading-none tracking-[0.04em] text-primary tabular-nums whitespace-nowrap">
       <span className="inline-flex items-center gap-1 text-muted">{label}</span>
-      <span className="inline-flex items-baseline gap-1">
+      <span className="inline-flex items-center gap-1">
         <span>{value}</span>
-        <span className="text-muted">{unit}</span>
+        <span className="inline-flex items-center text-muted">{unit}</span>
       </span>
     </div>
   )
@@ -355,6 +376,8 @@ type Item = {
   name: string
   href: string
   desc: React.ReactNode
+  /** Optional leading slot rendered before the name (e.g. avatar on Team). */
+  leading?: React.ReactNode
   meta?: React.ReactNode
   /** Optional right-aligned trailing slot (e.g. star count on Projects). */
   trailing?: React.ReactNode
@@ -370,9 +393,10 @@ function Items({ items }: { items: Array<Item> }) {
           // width — Projects (with stars) and Team (with an empty slot) end
           // up with the same name + desc column widths so rows line up
           // vertically across sections.
-          className="grid items-baseline gap-5 border-b border-dotted border-soft py-3.5 last:border-b-0 grid-cols-[minmax(220px,240px)_minmax(0,1fr)_72px] max-[640px]:grid-cols-1 max-[640px]:gap-1"
+          className="grid items-center gap-5 border-b border-dotted border-soft py-3.5 last:border-b-0 grid-cols-[minmax(220px,240px)_minmax(0,1fr)_72px] max-[640px]:grid-cols-1 max-[640px]:gap-1"
         >
-          <div className="text-lg font-medium tracking-[-0.01em]">
+          <div className="flex items-center gap-2.5 text-lg font-medium tracking-[-0.01em]">
+            {it.leading}
             <a href={it.href} target="_blank" rel="noopener noreferrer">
               {it.name}
             </a>
@@ -470,8 +494,8 @@ function Trailing(props: TrailingProps) {
   if (props.forceNew || isNew(props.createdAt, props.count))
     return <span className="uppercase tracking-wider">New</span>
   return (
-    <span className="inline-flex items-baseline gap-1">
-      <span className="text-sm leading-none relative -top-px">★</span>
+    <span className="inline-flex items-center gap-1">
+      <StarIcon className="size-3.5" />
       {props.count.toLocaleString('en-US')}
     </span>
   )
@@ -484,6 +508,15 @@ function Team() {
         items={config.team.map((t) => ({
           name: t.handle,
           href: `https://github.com/${t.github}`,
+          leading: (
+            <img
+              alt={`${t.handle} avatar`}
+              className="block size-7 rounded-full border border-primary"
+              height={28}
+              src={`https://github.com/${t.github}.png?size=56`}
+              width={28}
+            />
+          ),
           desc: (
             <>
               <a href={`https://github.com/${t.github}`} target="_blank" rel="noopener noreferrer">
