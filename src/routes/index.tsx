@@ -1,9 +1,10 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useEffect, useState } from 'react'
+import { useEffect, useId, useState } from 'react'
 import StarIcon from '~icons/ic/outline-star'
 import NpmIcon from '~icons/file-icons/npm-old'
 import GithubIcon from '~icons/simple-icons/github'
 import * as Config from '~/lib/config'
+import * as Logos from '~/lib/logos'
 import * as Sources from '~/lib/sources'
 import type * as Github from '../../worker/sources/github'
 
@@ -317,16 +318,17 @@ const logoOverrides = Object.fromEntries(
 )
 
 /**
- * Render a brand mark via CSS `mask-image` + `background: currentColor`
- * when the slug is in the manifest, else a `<span>` plain-text fallback.
- * No client-side image fallback so SSR HTML is final and there's no
- * broken-image flicker. Width is computed from the manifest aspect
- * ratio so the layout box matches the visual size (no CLS).
+ * Render a brand mark by inlining the mono SVG as live DOM and
+ * recoloring via `currentColor`. Falls back to a `<span>` plain-text
+ * mark when the slug isn't in the manifest. No client-side image
+ * fallback so SSR HTML is final and there's no broken-image flicker.
  *
- * Why mask instead of `<img>` + `filter`: iOS Safari has a long-standing
- * bug where applying `filter` to an `<img>` containing an SVG forces
- * rasterization at 1× device pixels, producing blur on retina/mobile.
- * `mask-image` recolors via the GPU and stays sharp at any DPR.
+ * Why inline SVG instead of `<img>` + `filter` or `<span>` + `mask-image`:
+ * the mono SVGs are themselves `<mask>+<rect>` documents (see
+ * [scripts/lib/svg.ts](scripts/lib/svg.ts) `wrapMask`). iOS Safari blurs
+ * any path that rasterizes a masked SVG image — both `<img>` + `filter`
+ * and CSS `mask-image` hit that bug at 3× DPR. Inlining the SVG renders
+ * it as live vector DOM and stays sharp at any scale.
  */
 function Mark({
   height,
@@ -339,37 +341,29 @@ function Mark({
   name: string
   slug: string
 }) {
+  // `useId()` returns IDs like `:r0:` — colons are valid HTML but ugly
+  // inside SVG `url(#…)` references; strip them for cleaner markup.
+  const id = useId().replace(/:/g, '')
   const ratio = manifest?.[slug]
-  if (ratio === undefined)
+  const svg = ratio !== undefined ? Logos.get(slug, id) : undefined
+  if (ratio === undefined || !svg)
     return <span className="text-lg font-medium tracking-[-0.01em] text-primary">{name}</span>
   // Per-slug visual scale lives in config (not the SVG bytes) so we
-  // don't have to reason about server-side viewBox clipping. We
-  // multiply both dimensions so the layout box reflects the visual
-  // size — important for the marquee, where transform-based scaling
-  // would overflow into the overflow-hidden clip.
-  // lowercase to match the case-insensitive override map
+  // don't have to reason about server-side viewBox clipping. We size
+  // the wrapper box in CSS — important for the marquee, where
+  // transform-based scaling would overflow into the overflow-hidden
+  // clip. lowercase to match the case-insensitive override map.
   const scale = logoOverrides[slug.toLowerCase()]?.scale ?? 1
   const renderedHeight = height * scale
   const renderedWidth = Math.round(renderedHeight * ratio)
-  const url = `/logos/mono/${slug}.svg`
   return (
     <span
       aria-hidden="true"
-      className="block bg-current transition-colors duration-100"
+      className="block transition-colors duration-100 [&>svg]:block [&>svg]:h-full [&>svg]:w-full"
       data-mark
+      dangerouslySetInnerHTML={{ __html: svg }}
       role="img"
-      style={{
-        height: `${renderedHeight}px`,
-        width: `${renderedWidth}px`,
-        WebkitMaskImage: `url(${url})`,
-        maskImage: `url(${url})`,
-        WebkitMaskRepeat: 'no-repeat',
-        maskRepeat: 'no-repeat',
-        WebkitMaskPosition: 'left center',
-        maskPosition: 'left center',
-        WebkitMaskSize: 'contain',
-        maskSize: 'contain',
-      }}
+      style={{ height: `${renderedHeight}px`, width: `${renderedWidth}px` }}
       title={name}
     />
   )
