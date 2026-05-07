@@ -112,23 +112,14 @@
 }
 
 /*
- * Brand-mark colors. Bytes ship pure white so we can recolor entirely
- * in CSS — `<img>`-rendered SVGs don't inherit parent paint, so we
- * lean on `filter` instead of `currentColor`. `brightness(< 1)` darkens
- * white toward gray; on hover we collapse to pure black (light) or
- * leave it pure white (dark).
+ * Brand-mark colors. Bytes ship pure white so we use the SVG as a CSS
+ * `mask-image` and paint via `background: currentColor`. This keeps the
+ * mark sharp at any DPR (iOS Safari rasterizes `<img>` SVGs at 1× when
+ * a CSS `filter` is applied — using mask + currentColor sidesteps it).
  */
 [data-mark] {
-  filter: brightness(0.42); /* ~#6b6b6b — matches `--color-muted` light */
+  color: var(--color-muted);
 }
 a:hover [data-mark] {
-  filter: brightness(0);
-}
-@media (prefers-color-scheme: dark) {
-  [data-mark] {
-    filter: brightness(0.54); /* ~#8a8a86 — matches `--color-muted` dark */
-  }
-  a:hover [data-mark] {
-    filter: none;
-  }
+  color: var(--color-primary);
 }

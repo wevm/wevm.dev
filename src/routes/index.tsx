@@ -317,11 +317,16 @@ const logoOverrides = Object.fromEntries(
 )
 
 /**
- * Render a brand mark — an `<img src="/logo/:slug">` when the slug is
- * in the manifest, else a `<span>` plain-text fallback. No client-side
- * image fallback so SSR HTML is final and there's no broken-image
- * flicker. Width is computed from the manifest aspect ratio so the
- * intrinsic image dimensions match the rendered box (no CLS).
+ * Render a brand mark via CSS `mask-image` + `background: currentColor`
+ * when the slug is in the manifest, else a `<span>` plain-text fallback.
+ * No client-side image fallback so SSR HTML is final and there's no
+ * broken-image flicker. Width is computed from the manifest aspect
+ * ratio so the layout box matches the visual size (no CLS).
+ *
+ * Why mask instead of `<img>` + `filter`: iOS Safari has a long-standing
+ * bug where applying `filter` to an `<img>` containing an SVG forces
+ * rasterization at 1× device pixels, producing blur on retina/mobile.
+ * `mask-image` recolors via the GPU and stays sharp at any DPR.
  */
 function Mark({
   height,
@@ -339,24 +344,33 @@ function Mark({
     return <span className="text-lg font-medium tracking-[-0.01em] text-primary">{name}</span>
   // Per-slug visual scale lives in config (not the SVG bytes) so we
   // don't have to reason about server-side viewBox clipping. We
-  // multiply both `<img>` dimensions so the layout box reflects the
-  // visual size — important for the marquee, where transform-based
-  // scaling would overflow into the overflow-hidden clip.
+  // multiply both dimensions so the layout box reflects the visual
+  // size — important for the marquee, where transform-based scaling
+  // would overflow into the overflow-hidden clip.
   // lowercase to match the case-insensitive override map
   const scale = logoOverrides[slug.toLowerCase()]?.scale ?? 1
   const renderedHeight = height * scale
+  const renderedWidth = Math.round(renderedHeight * ratio)
+  const url = `/logos/mono/${slug}.svg`
   return (
-    <img
-      // "{name} logo" is more descriptive for SEO image search than just the
-      // brand name. The parent <a> still carries `aria-label={name}` for SR
-      // brevity, so we don't double-announce "logo" to assistive tech.
-      alt={`${name} logo`}
-      className="block w-auto transition-[filter] duration-100"
+    <span
+      aria-hidden="true"
+      className="block bg-current transition-colors duration-100"
       data-mark
-      height={renderedHeight}
-      src={`/logos/mono/${slug}.svg`}
-      style={{ height: `${renderedHeight}px` }}
-      width={Math.round(renderedHeight * ratio)}
+      role="img"
+      style={{
+        height: `${renderedHeight}px`,
+        width: `${renderedWidth}px`,
+        WebkitMaskImage: `url(${url})`,
+        maskImage: `url(${url})`,
+        WebkitMaskRepeat: 'no-repeat',
+        maskRepeat: 'no-repeat',
+        WebkitMaskPosition: 'left center',
+        maskPosition: 'left center',
+        WebkitMaskSize: 'contain',
+        maskSize: 'contain',
+      }}
+      title={name}
     />
   )
 }
@@ -513,7 +527,9 @@ function Team() {
               alt={`${t.handle} avatar`}
               className="block size-7 rounded-full border border-primary"
               height={28}
-              src={`https://github.com/${t.github}.png?size=56`}
+              // 84 = 28 × 3 so the avatar stays sharp on 3× DPR mobile
+              // displays (the GitHub avatar service rounds up internally).
+              src={`https://github.com/${t.github}.png?size=84`}
               width={28}
             />
           ),
